@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Runner</title>
+    <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
+    <!--  Build Date: Wed Nov 27 2013 10:23:46 GMT-0800 (PST) -->
+    
+    <script type="text/javascript">
+        var APP_BUILD_DATE = "Wed Nov 27 2013 10:23:46 GMT-0800 (PST)";
+        var CHECKSUM = 11008511150;
+    </script>
+    
+    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function() {
+             
+/**
+ * A link that pops up a version dialog box
+ */
+
+Ext.define('Rally.technicalservices.InfoLink',{
+    extend: 'Ext.Component',
+    alias: 'widget.tsinfolink',
+    
+    /**
+     * @cfg {String} informationHtml
+     * Additional text to be displayed on the popup dialog (for exmaple,
+     * to add a description of the app's use or functionality)
+     */
+    informationHtml: null,
+    
+    /**
+     * 
+     * cfg {String} title
+     * The title for the dialog box
+     */
+     text: "Information",
+    
+    renderTpl: "<div id='{id}-infolinkWrap' class='tsinfolink'>TS</div>",
+
+    initComponent: function() {
+        this.callParent(arguments);
+       
+    },
+    
+    onRender: function() {
+        this.callParent(arguments);
+        this.mon(this.el,'click',this.onClick,this);
+    },
+    _generateChecksum: function(string){
+        var chk = 0x12345678,
+            i;
+        string = string.replace(/var CHECKSUM = .*;/,"");
+        
+        for (i = 0; i < string.length; i++) {
+            chk += (string.charCodeAt(i) * i);
+        }
+    
+        return chk;
+    },
+    _checkChecksum: function(container) {
+        var me = this;
+        Ext.Ajax.request({
+            url: document.URL,
+            params: {
+                id: 1
+            },
+            success: function (response) {
+                text = response.responseText;
+                if ( CHECKSUM ) {
+                    if ( CHECKSUM !== me._generateChecksum(text) ) {
+                        console.log("Checksums don't match!");
+                        if ( me.dialog ) {
+                            me.dialog.add({xtype:'container',html:'Checksums do not match'});
+                        }
+                    }
+                }
+            }
+        });
+    },
+    onClick: function(e) {
+        var me = this;
+        this._checkChecksum(this);
+        
+        var dialog_items = [];
+        
+        if ( this.informationHtml ) {
+            dialog_items.push({
+                xtype:'container',
+                html: this.informationHtml
+            });
+        }
+                
+        dialog_items.push({
+            xtype:'container',
+            html:"This app was created by the Rally Technical Services Team."
+        });
+        
+        if ( APP_BUILD_DATE ) {
+            dialog_items.push({
+                xtype:'container',
+                html:'Build date/time: ' + APP_BUILD_DATE
+            });
+        }
+        
+        if (this.dialog){this.dialog.destroy();}
+        this.dialog = Ext.create('Rally.ui.dialog.Dialog',{
+            defaults: { padding: 5, margin: 5 },
+            closable: true,
+            draggable: true,
+            title: me.title,
+            items: dialog_items
+        });
+        this.dialog.show();
+    }
+});
+/*
+ */
+Ext.define('Rally.technicalservices.Logger',{
+    constructor: function(config){
+        Ext.apply(this,config);
+    },
+    log: function(args){
+        var timestamp = "[ " + Ext.util.Format.date(new Date(), "Y-m-d H:i:s.u") + " ]";
+        //var output_args = arguments;
+        //output_args.unshift( [ "[ " + timestamp + " ]" ] );
+        //output_args = Ext.Array.push(output_args,arguments);
+        
+        var output_args = [];
+        output_args = Ext.Array.push(output_args,[timestamp]);
+        output_args = Ext.Array.push(output_args, Ext.Array.slice(arguments,0));
+
+        window.console && console.log.apply(console,output_args);
+    }
+
+});
+
+Ext.define('Rally.technicalservices.TestStepDialog',{
+    extend: 'Rally.ui.dialog.Dialog',
+    alias: 'widget.tssettingsdialog',
+    config: {
+        /**
+         * 
+         * The test case record (the kind from a wsapi datastore, reponds to a "get")
+         * {@TestCase} test_case  
+         */
+        test_case: null,
+        test_steps: [],
+        current_index: -1,
+        title: 'Test Step Runner',
+        width: 500
+    },
+    items: [{
+        xtype: 'panel',
+        border: false,
+        defaults: {
+            padding: 5,
+            margin: 5
+        },
+        items: [
+            {
+                xtype: 'container',
+                itemId: 'case_summary_box'
+            },
+            {
+                xtype:'container',
+                itemId: 'case_step_box'
+            }
+        ]
+    }],
+    constructor: function(config){
+        this.mergeConfig(config);
+        this.callParent([this.config]);
+        
+    },
+    initComponent: function() {
+        this.callParent(arguments);
+//        this.addEvents(
+//            /**
+//             * @event settingsChosen
+//             * Fires when user clicks done after making settings choices
+//             * @param {Rally.technicalservices.SettingsDialog} this
+//             * @param {hash} config settings
+//             */
+//            'settingsChosen',
+//            /**
+//             * @event cancelChosen
+//             * Fires when user clicks the cancel button
+//             */
+//            'cancelChosen'
+//        );
+        this._buildButtons();
+        this._setSummary();
+        //this._addChoosers();
+    },
+    _setSummary: function() {
+        var me = this;
+        
+        var summary_box = this.down('#case_summary_box');
+        this.test_case.getCollection('Steps').load({
+            fetch: ['Input', 'ExpectedResult'],
+            callback: function(steps, operation, success) {
+                me.test_steps = steps;
+                summary_box.add({
+                    xtype:'container',
+                    html: me.test_case.get('FormattedID') + ": " + me.test_case.get('Name')
+                });
+                summary_box.add({
+                    xtype:'container',
+                    itemId:'explanation_box',
+                    html: "There are " + steps.length + " steps in this test case.  Press 'OK' to begin executing the test steps."
+                });
+                me.down('#ok_button').setDisabled(false);
+            }
+        });
+    },
+    _displayStep: function() {
+        this.down('#explanation_box').removeAll();
+        this.down('#case_step_box').removeAll();
+
+        if ( this.current_index < this.test_steps.length ) {
+            var step = this.test_steps[this.current_index];
+            var display_index = this.current_index + 1;
+            
+            this.down('#case_step_box').add({
+                xtype:'container',
+                layout: { type: 'hbox' },
+                padding: 10,
+                margin: 10,
+                defaults: { padding: 10 },
+                items: [
+                    { 
+                        xtype:'container', 
+                        layout: { type: 'vbox' },
+                        items: [
+                            {xtype:'container',html:'Step'},
+                            {xtype:'container',html:display_index + "."}
+                        ]
+                    },
+                    { 
+                        xtype:'container', 
+                        layout: { type: 'vbox' },
+                        items: [
+                            {xtype:'container',html:'Input'},
+                            {xtype:'container',html:step.get('Input')}
+                        ]
+                    },
+                    { 
+                        xtype:'container', 
+                        layout: { type: 'vbox' },
+                        items: [
+                            {xtype:'container',html:'Expected Result'},
+                            {xtype:'container',html:step.get('ExpectedResult')}
+                        ]
+                    }
+                ]
+            });
+            
+            this.down('#ok_button').setDisabled(false);
+            this.down('#fail_button').setDisabled(false);
+            if ( this.current_index > 0 ) {
+                this.down('#back_button').setDisabled(false);
+            }
+        }
+        this.down('#cancel_button').setDisabled(false);
+    },
+    _disableAllButtons: function() {
+        var buttons = this.query('rallybutton');
+        Ext.Array.each(buttons, function(button) { button.setDisabled(true);});
+    },
+    _buildButtons: function() {
+        this.down('panel').addDocked({
+            xtype: 'toolbar',
+            dock: 'bottom',
+            padding: '0 0 10 0',
+            layout: {
+                type: 'hbox',
+                pack: 'center'
+            },
+            ui: 'footer',
+            items: [
+                {
+                    xtype: 'rallybutton',
+                    itemId: 'back_button',
+                    text: '< Back',
+                    disabled: true,
+                    scope: this,
+                    userAction: 'clicked back in dialog',
+                    handler: function() {
+                        //this.fireEvent('settingsChosen', this, this._getConfig());
+                        this._disableAllButtons();
+                        this.current_index -= 1;
+                        this._displayStep();
+                    }
+                },                {
+                    xtype: 'rallybutton',
+                    itemId: 'fail_button',
+                    text: 'FAIL',
+                    disabled: true,
+                    scope: this,
+                    userAction: 'clicked failed in dialog',
+                    handler: function() {
+                        //this.fireEvent('settingsChosen', this, this._getConfig());
+                        this._disableAllButtons();
+                        this.close();
+                    }
+                },
+                {
+                    xtype: 'rallybutton',
+                    itemId: 'ok_button',
+                    text: 'OK',
+                    disabled: true,
+                    scope: this,
+                    userAction: 'clicked OK in dialog',
+                    handler: function(btn) {
+                        //this.fireEvent('settingsChosen', this, this._getConfig());
+                        this._disableAllButtons();
+                        this.current_index += 1;
+                        this._displayStep();
+                    }
+                },
+                {
+                    xtype: 'rallybutton',
+                    text: 'Cancel',
+                    itemId:'cancel_button',
+                    userAction: 'clicked Cancel in dialog',
+                    handler: function() {
+                        //this.fireEvent('cancelChosen');
+                        this._disableAllButtons();
+                        this.close()
+                    },
+                    scope: this
+                }
+            ]
+        });
+    }
+});
+/**
+ * a component that displays and allows interaction with test steps for a test case
+ */
+
+Ext.define('Rally.technicalservices.TestStepTable',{
+    extend: 'Ext.Container',
+    alias: 'widget.tsteststeptable',
+    config: {
+        /**
+         * 
+         * The test case record (the kind from a wsapi datastore, reponds to a "get")
+         * {@TestCase} test_case  
+         */
+        test_case: null,
+        test_steps: [],
+        current_index: -1,
+        /**
+         * 
+         * [ @String ] step_vericts  An array of valid verdicts for each step 
+         */
+        step_verdicts: ['Not Run','Pass','Fail'],
+        step_verdict_store: null
+    },
+    items: [
+        {xtype:'container',itemId:'summary_box'},
+        {xtype:'container',itemId:'grid_box', padding: 10, margin: 10},
+        {xtype:'container',itemId:'action_box', defaults: { padding: 5, margin: 5 }, layout: { type: 'hbox', pack: 'center' }}
+    ],
+    constructor: function(config){
+        this.mergeConfig(config);
+        this.callParent([this.config]);
+        
+    },
+    initComponent: function() {
+        this.callParent(arguments);
+//        this.addEvents(
+//            /**
+//             * @event settingsChosen
+//             * Fires when user clicks done after making settings choices
+//             * @param {Rally.technicalservices.SettingsDialog} this
+//             * @param {hash} config settings
+//             */
+//            'settingsChosen',
+//            /**
+//             * @event cancelChosen
+//             * Fires when user clicks the cancel button
+//             */
+//            'cancelChosen'
+//        );
+        this._defineStepVerdictStore();
+        this._setSummary();
+        this._makeGrid();
+    },
+    _defineStepVerdictStore: function() {
+        var data = [];
+        Ext.Array.each(this.step_verdicts,function(verdict){
+            data.push({dataIndex:verdict,text:verdict});
+        });
+        this.step_verdict_store = Ext.create('Rally.data.custom.Store',{
+            data:data
+        });
+    },
+    _setSummary: function() {
+        this.down('#summary_box').add({
+            xtype:'container',
+            html:'Test Case: ' + this.test_case.get('FormattedID') + ": " + this.test_case.get('Name')
+        });
+    },
+    _makeGrid: function() {
+        this.down('#grid_box').removeAll();
+        var me = this;
+        
+        if ( this.test_case ) {
+            this.test_case.getCollection('Steps').load({
+                fetch: ['StepIndex','Input', 'ExpectedResult'],
+                scope: this,
+                callback: function(steps, operation, success) {
+                    this.test_steps = steps;
+                    if ( steps.length === 0 ) {
+                        this.down('#grid_box').add({
+                            xtype:'container',
+                            html:'No steps found for ' + this.test_case.get('FormattedID') + ' ' + this.test_case.get('Name')
+                        });
+                    } else {
+                        this.step_store = Ext.create('Rally.data.custom.Store',{
+                            data: steps,
+                            listeners: {
+                                load: function(store,records) {
+                                    Ext.Array.each(records,function(record){
+                                        record.set('Verdict','Not Run')
+                                    });
+                                }
+                            }
+                        });
+                        this.down('#grid_box').add({
+                            xtype:'rallygrid',
+                            store: this.step_store,
+                            sortableColumns: false,
+                            columnCfgs: [
+                                { dataIndex:'StepIndex', text:'Step'},
+                                { dataIndex:'Input', text:'Input', flex: 1},
+                                { dataIndex:'ExpectedResult',text:'Expected Result', flex: 1},
+                                { dataIndex:'Verdict',text:'Step Verdict', editor: {
+                                    xtype:'rallycombobox',
+                                    store:me.step_verdict_store,
+                                    displayField:'text',
+                                    valueField:'dataIndex'
+                                }}
+                            ]
+                        });
+                        
+                        this.down('#action_box').add({
+                            xtype: 'rallybutton',
+                            itemId: 'reset_button',
+                            text: 'All Steps Not Run',
+                            disabled: false,
+                            scope: this,
+                            handler: function() {
+                                this._setAllSteps('Not Run');
+                            } 
+                        }); 
+                        this.down('#action_box').add({
+                            xtype: 'rallybutton',
+                            itemId: 'pass_button',
+                            text: 'All Steps Pass',
+                            disabled: false,
+                            scope: this,
+                            handler: function() {
+                                this._setAllSteps('Pass');
+                            } 
+                        });
+                    }
+                }
+            });
+        }
+    },
+    _setAllSteps: function(verdict){
+        var store = this.step_store;
+        var step_count = store.getCount();
+        for ( var i=0;i<step_count;i++ ) {
+            var step = store.getAt(i);
+            step.set('Verdict',verdict);
+        }
+    }
+});
+Ext.define('CustomApp', {
+    extend: 'Rally.app.App',
+    componentCls: 'app',
+
+    logger: new Rally.technicalservices.Logger(),
+    items: [
+        {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
+        {xtype:'container',itemId:'test_box'},
+        {xtype:'tsinfolink'}
+    ],
+    launch: function() {
+        this.down('#message_box').update(this.getContext().getUser());
+        Ext.create('Rally.data.WsapiDataStore',{
+            autoLoad: true,
+            model: 'TestCase',
+            fetch: ['Name','FormattedID','Steps'],
+            title: 'Test Step Runner',
+            listeners: {
+                scope: this,
+                load: function(store,cases) {
+                    if (cases.length > 1 ) {
+                        this.add({
+                            xtype: 'tsteststeptable',
+                            margin: 5,
+                            test_case: cases[0]
+                        });
+                        this.down('#test_box').add({
+                            xtype: 'tsteststeptable',
+                            margin: 5,
+                            test_case: cases[1]
+                        });                        
+                    }
+                }
+            }
+        });
+    }
+});
+
+            
+               Rally.launchApp('CustomApp', {
+                   name: 'Test Runner'
+               });
+        });
+    </script>
+    
+    <style type="text/css">
+
+.app {
+}
+.tsinfolink {
+    position:absolute;
+    right:0px;
+    width:5%;
+}
+    </style>
+
+</head>
+<body></body>
+</html>
