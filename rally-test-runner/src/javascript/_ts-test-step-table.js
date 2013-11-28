@@ -128,7 +128,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 }}
                             ]
                         });
-                        
+    
                         this.down('#action_box').add({
                             xtype: 'rallybutton',
                             itemId: 'reset_button',
@@ -149,29 +149,29 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 this._setAllSteps('Pass');
                             } 
                         });
-                        this.down('#action_box').add({
-                            xtype: 'rallybutton',
-                            itemId: 'save_pass_button',
-                            text: 'Pass This Test',
-                            disabled: false,
-                            scope: this,
-                            handler: function() {
-                                this._disableAllButtons();
-                                this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
-                            } 
-                        });
-                        this.down('#action_box').add({
-                            xtype: 'rallybutton',
-                            itemId: 'save_fail_button',
-                            text: 'Fail This Test',
-                            disabled: false,
-                            scope: this,
-                            handler: function() {
-                                this._disableAllButtons();
-                                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
-                            } 
-                        });
-                    }
+                    }                    
+                    this.down('#action_box').add({
+                        xtype: 'rallybutton',
+                        itemId: 'save_pass_button',
+                        text: 'Pass This Test',
+                        disabled: false,
+                        scope: this,
+                        handler: function() {
+                            this._disableAllButtons();
+                            this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
+                        } 
+                    });
+                    this.down('#action_box').add({
+                        xtype: 'rallybutton',
+                        itemId: 'save_fail_button',
+                        text: 'Fail This Test',
+                        disabled: false,
+                        scope: this,
+                        handler: function() {
+                            this._disableAllButtons();
+                            this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
+                        } 
+                    });
                 }
             });
         }
@@ -195,10 +195,12 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     _getAllSteps: function() {
         var steps = [];
         var store = this.step_store;
-        var step_count = store.getCount();
-        for ( var i=0;i<step_count;i++ ) {
-            var step = store.getAt(i);
-            steps.push(step);
+        if ( store ) {
+            var step_count = store.getCount();
+            for ( var i=0;i<step_count;i++ ) {
+                var step = store.getAt(i);
+                steps.push(step);
+            }
         }
         return steps;
     }

@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Nov 28 2013 09:43:44 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Nov 28 2013 10:42:57 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Nov 28 2013 09:43:44 GMT-0800 (PST)";
-        var CHECKSUM = 19823811214;
+        var APP_BUILD_DATE = "Thu Nov 28 2013 10:42:57 GMT-0800 (PST)";
+        var CHECKSUM = 21783878594;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -466,7 +466,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 }}
                             ]
                         });
-                        
+    
                         this.down('#action_box').add({
                             xtype: 'rallybutton',
                             itemId: 'reset_button',
@@ -487,29 +487,29 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 this._setAllSteps('Pass');
                             } 
                         });
-                        this.down('#action_box').add({
-                            xtype: 'rallybutton',
-                            itemId: 'save_pass_button',
-                            text: 'Pass This Test',
-                            disabled: false,
-                            scope: this,
-                            handler: function() {
-                                this._disableAllButtons();
-                                this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
-                            } 
-                        });
-                        this.down('#action_box').add({
-                            xtype: 'rallybutton',
-                            itemId: 'save_fail_button',
-                            text: 'Fail This Test',
-                            disabled: false,
-                            scope: this,
-                            handler: function() {
-                                this._disableAllButtons();
-                                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
-                            } 
-                        });
-                    }
+                    }                    
+                    this.down('#action_box').add({
+                        xtype: 'rallybutton',
+                        itemId: 'save_pass_button',
+                        text: 'Pass This Test',
+                        disabled: false,
+                        scope: this,
+                        handler: function() {
+                            this._disableAllButtons();
+                            this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
+                        } 
+                    });
+                    this.down('#action_box').add({
+                        xtype: 'rallybutton',
+                        itemId: 'save_fail_button',
+                        text: 'Fail This Test',
+                        disabled: false,
+                        scope: this,
+                        handler: function() {
+                            this._disableAllButtons();
+                            this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
+                        } 
+                    });
                 }
             });
         }
@@ -533,10 +533,12 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     _getAllSteps: function() {
         var steps = [];
         var store = this.step_store;
-        var step_count = store.getCount();
-        for ( var i=0;i<step_count;i++ ) {
-            var step = store.getAt(i);
-            steps.push(step);
+        if ( store ) {
+            var step_count = store.getCount();
+            for ( var i=0;i<step_count;i++ ) {
+                var step = store.getAt(i);
+                steps.push(step);
+            }
         }
         return steps;
     }
@@ -564,16 +566,16 @@ Ext.define('CustomApp', {
         Ext.create('Rally.data.WsapiDataStore',{
             autoLoad: true,
             model: 'TestCase',
-            fetch: ['Name','FormattedID','Steps'],
+            fetch: ['Name','FormattedID','Steps','WorkProduct'],
             title: 'Test Step Runner',
             listeners: {
                 scope: this,
                 load: function(store,cases) {
-                    if (cases.length > 1 ) {
+                    Ext.Array.each(cases, function(tc){
                         this.down('#test_box').add({
                             xtype: 'tsteststeptable',
                             margin: 5,
-                            test_case: cases[0],
+                            test_case: tc,
                             tester: this.getContext().getUser(),
                             listeners: {
                                 scope: this,
@@ -595,13 +597,7 @@ Ext.define('CustomApp', {
                                 }
                             }
                         });
-                        this.down('#test_box').add({
-                            xtype: 'tsteststeptable',
-                            margin: 5,
-                            tester: this.getContext().getUser(),
-                            test_case: cases[1]
-                        });                        
-                    }
+                    }, this);
                 }
             }
         });
@@ -628,6 +624,8 @@ Ext.define('CustomApp', {
         
         var notes = step_array.join('<br/>');
         
+        if ( steps.length === 0 ) { notes = "No test steps were defined"; }
+        
         Rally.data.ModelFactory.getModel({
             type: 'TestCaseResult',
             success: function(model) {
@@ -643,7 +641,9 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
-                        me._askToCreateADefect(result,test_case,notes);
+                        if ( verdict === "Fail" ) {
+                            me._askToCreateADefect(result,test_case,notes);
+                        }
                         me.getEl().unmask();
                     }
                 });
@@ -651,7 +651,41 @@ Ext.define('CustomApp', {
         });
     },
     _askToCreateADefect:function(tcr,test_case,notes){
-        // TODO: ask if the user would like to raise a defect
+        Ext.create('Rally.ui.dialog.ConfirmDialog', {
+            message: 'Create A Defect?',
+            confirmLabel: 'Yes',
+            cancelLabel: 'No',
+            listeners: {
+                scope: this,
+                confirm: function(){
+                    this._createADefect(tcr,test_case,notes);
+                }
+            }
+        })
+    },
+    _createADefect: function(tcr,test_case,notes){
+        var work_product = null;
+        if ( test_case.get('WorkProduct') && test_case.get('WorkProduct')._type == "HierarchicalRequirement" ) {
+            work_product = test_case.get('WorkProduct')._ref;
+        }
+        Rally.data.ModelFactory.getModel({
+            type:'Defect',
+            success: function(model){
+                var defect = Ext.create(model,{
+                    Name: "Problem found while testing " + test_case.get("FormattedID"),
+                    Notes: notes,
+                    TestCase: test_case.get('_ref'),
+                    Requirement: work_product,
+                    TestCaseResult: tcr.get('_ref')
+                });
+                
+                defect.save({
+                    callback: function(result,operation) {
+                        Rally.nav.Manager.edit(result);
+                    }
+                });
+            }
+        });
     }
 });
 

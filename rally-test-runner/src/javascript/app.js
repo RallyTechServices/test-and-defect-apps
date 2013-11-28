@@ -21,16 +21,16 @@ Ext.define('CustomApp', {
         Ext.create('Rally.data.WsapiDataStore',{
             autoLoad: true,
             model: 'TestCase',
-            fetch: ['Name','FormattedID','Steps'],
+            fetch: ['Name','FormattedID','Steps','WorkProduct'],
             title: 'Test Step Runner',
             listeners: {
                 scope: this,
                 load: function(store,cases) {
-                    if (cases.length > 1 ) {
+                    Ext.Array.each(cases, function(tc){
                         this.down('#test_box').add({
                             xtype: 'tsteststeptable',
                             margin: 5,
-                            test_case: cases[0],
+                            test_case: tc,
                             tester: this.getContext().getUser(),
                             listeners: {
                                 scope: this,
@@ -52,13 +52,7 @@ Ext.define('CustomApp', {
                                 }
                             }
                         });
-                        this.down('#test_box').add({
-                            xtype: 'tsteststeptable',
-                            margin: 5,
-                            tester: this.getContext().getUser(),
-                            test_case: cases[1]
-                        });                        
-                    }
+                    }, this);
                 }
             }
         });
@@ -85,6 +79,8 @@ Ext.define('CustomApp', {
         
         var notes = step_array.join('<br/>');
         
+        if ( steps.length === 0 ) { notes = "No test steps were defined"; }
+        
         Rally.data.ModelFactory.getModel({
             type: 'TestCaseResult',
             success: function(model) {
@@ -100,7 +96,9 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
-                        me._askToCreateADefect(result,test_case,notes);
+                        if ( verdict === "Fail" ) {
+                            me._askToCreateADefect(result,test_case,notes);
+                        }
                         me.getEl().unmask();
                     }
                 });
@@ -108,6 +106,40 @@ Ext.define('CustomApp', {
         });
     },
     _askToCreateADefect:function(tcr,test_case,notes){
-        // TODO: ask if the user would like to raise a defect
+        Ext.create('Rally.ui.dialog.ConfirmDialog', {
+            message: 'Create A Defect?',
+            confirmLabel: 'Yes',
+            cancelLabel: 'No',
+            listeners: {
+                scope: this,
+                confirm: function(){
+                    this._createADefect(tcr,test_case,notes);
+                }
+            }
+        })
+    },
+    _createADefect: function(tcr,test_case,notes){
+        var work_product = null;
+        if ( test_case.get('WorkProduct') && test_case.get('WorkProduct')._type == "HierarchicalRequirement" ) {
+            work_product = test_case.get('WorkProduct')._ref;
+        }
+        Rally.data.ModelFactory.getModel({
+            type:'Defect',
+            success: function(model){
+                var defect = Ext.create(model,{
+                    Name: "Problem found while testing " + test_case.get("FormattedID"),
+                    Notes: notes,
+                    TestCase: test_case.get('_ref'),
+                    Requirement: work_product,
+                    TestCaseResult: tcr.get('_ref')
+                });
+                
+                defect.save({
+                    callback: function(result,operation) {
+                        Rally.nav.Manager.edit(result);
+                    }
+                });
+            }
+        });
     }
 });
