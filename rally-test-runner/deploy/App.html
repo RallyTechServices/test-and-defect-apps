@@ -3,14 +3,14 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Nov 27 2013 10:23:46 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Nov 28 2013 09:43:44 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Nov 27 2013 10:23:46 GMT-0800 (PST)";
-        var CHECKSUM = 11008511150;
+        var APP_BUILD_DATE = "Thu Nov 28 2013 09:43:44 GMT-0800 (PST)";
+        var CHECKSUM = 19823811214;
     </script>
     
-    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
+    <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
 
     <script type="text/javascript">
         Rally.onReady(function() {
@@ -357,7 +357,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
          * [ @String ] step_vericts  An array of valid verdicts for each step 
          */
         step_verdicts: ['Not Run','Pass','Fail'],
-        step_verdict_store: null
+        step_verdict_store: null,
+        tester: null
     },
     items: [
         {xtype:'container',itemId:'summary_box'},
@@ -371,20 +372,26 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     },
     initComponent: function() {
         this.callParent(arguments);
-//        this.addEvents(
-//            /**
-//             * @event settingsChosen
-//             * Fires when user clicks done after making settings choices
-//             * @param {Rally.technicalservices.SettingsDialog} this
-//             * @param {hash} config settings
-//             */
-//            'settingsChosen',
-//            /**
-//             * @event cancelChosen
-//             * Fires when user clicks the cancel button
-//             */
-//            'cancelChosen'
-//        );
+        this.addEvents(
+            /**
+             * @event verdictChosen
+             * Fires when user clicks one of the verdict buttons
+             * @param {Rally.technicalservices.TestStepTable} this
+             * @param {model} test_case 
+             * @param {String} verdict
+             * @param [{Record}] steps 
+             */
+            'verdictChosen',
+            /**
+             * @event stepUpdated
+             * Fires when user modifies one of the steps (e.g., to set a verdict to the step)
+             * @param {Rally.technicalservices.TestStepTable} this
+             * @param {Rally.data.custom.Store} step_store  The data store holding the steps in the table
+             * @param {Record} step The step that changed
+             * @param [{String}] modified_field_names  The fields that changed on the record 
+             */
+            'stepUpdated'
+        );
         this._defineStepVerdictStore();
         this._setSummary();
         this._makeGrid();
@@ -423,19 +430,32 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         this.step_store = Ext.create('Rally.data.custom.Store',{
                             data: steps,
                             listeners: {
+                                scope: this,
                                 load: function(store,records) {
                                     Ext.Array.each(records,function(record){
                                         record.set('Verdict','Not Run')
                                     });
+                                },
+                                update: function(store,record,operation,modified_field_names){
+                                    this.fireEvent('stepUpdated',this,store,record,operation,modified_field_names);
+                                    this._enableAllButtons();
                                 }
                             }
                         });
+                        
+                        var addOneRenderer = function(value) {
+                            if (Ext.isNumber(value)) {
+                                return value + 1;
+                            }
+                            return value;
+                        };
                         this.down('#grid_box').add({
                             xtype:'rallygrid',
                             store: this.step_store,
                             sortableColumns: false,
+                            showRowActionsColumn: false,
                             columnCfgs: [
-                                { dataIndex:'StepIndex', text:'Step'},
+                                { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
                                 { dataIndex:'Input', text:'Input', flex: 1},
                                 { dataIndex:'ExpectedResult',text:'Expected Result', flex: 1},
                                 { dataIndex:'Verdict',text:'Step Verdict', editor: {
@@ -467,10 +487,40 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 this._setAllSteps('Pass');
                             } 
                         });
+                        this.down('#action_box').add({
+                            xtype: 'rallybutton',
+                            itemId: 'save_pass_button',
+                            text: 'Pass This Test',
+                            disabled: false,
+                            scope: this,
+                            handler: function() {
+                                this._disableAllButtons();
+                                this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
+                            } 
+                        });
+                        this.down('#action_box').add({
+                            xtype: 'rallybutton',
+                            itemId: 'save_fail_button',
+                            text: 'Fail This Test',
+                            disabled: false,
+                            scope: this,
+                            handler: function() {
+                                this._disableAllButtons();
+                                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
+                            } 
+                        });
                     }
                 }
             });
         }
+    },
+    _disableAllButtons: function() {
+        var buttons = this.query('rallybutton');
+        Ext.Array.each(buttons, function(button) { button.setDisabled(true);});
+    },
+    _enableAllButtons: function() {
+        var buttons = this.query('rallybutton');
+        Ext.Array.each(buttons, function(button) { button.setDisabled(false);});
     },
     _setAllSteps: function(verdict){
         var store = this.step_store;
@@ -479,6 +529,16 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             var step = store.getAt(i);
             step.set('Verdict',verdict);
         }
+    },
+    _getAllSteps: function() {
+        var steps = [];
+        var store = this.step_store;
+        var step_count = store.getCount();
+        for ( var i=0;i<step_count;i++ ) {
+            var step = store.getAt(i);
+            steps.push(step);
+        }
+        return steps;
     }
 });
 Ext.define('CustomApp', {
@@ -488,11 +548,19 @@ Ext.define('CustomApp', {
     logger: new Rally.technicalservices.Logger(),
     items: [
         {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
+        {xtype:'container',itemId:'test_run', margin: 5, items: [
+            {
+                xtype:'rallytextfield',
+                itemId:'build_box',
+                fieldLabel:'Build used for this test run'
+            }
+        ]},
         {xtype:'container',itemId:'test_box'},
         {xtype:'tsinfolink'}
     ],
     launch: function() {
-        this.down('#message_box').update(this.getContext().getUser());
+        //this.down('#message_box').update(this.getContext().getUser());
+
         Ext.create('Rally.data.WsapiDataStore',{
             autoLoad: true,
             model: 'TestCase',
@@ -502,20 +570,88 @@ Ext.define('CustomApp', {
                 scope: this,
                 load: function(store,cases) {
                     if (cases.length > 1 ) {
-                        this.add({
+                        this.down('#test_box').add({
                             xtype: 'tsteststeptable',
                             margin: 5,
-                            test_case: cases[0]
+                            test_case: cases[0],
+                            tester: this.getContext().getUser(),
+                            listeners: {
+                                scope: this,
+                                verdictChosen: function(table, test_case, verdict, steps) {
+                                    this._makeTestCaseResult(test_case,verdict,steps);
+                                },
+                                stepUpdated: function(table,store,step,operation,modified_field_names){
+                                    this.logger.log("Step Changed",step,modified_field_names);
+                                    if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
+                                        var verdict = step.get('Verdict');
+                                        if ( verdict === "Not Run" ) {
+                                            step.set('Tester',null);
+                                            step.set('TestDate',null);
+                                        } else {
+                                            step.set('Tester',this.getContext().getUser().UserName);
+                                            step.set('TestDate',new Date());
+                                        }
+                                    }
+                                }
+                            }
                         });
                         this.down('#test_box').add({
                             xtype: 'tsteststeptable',
                             margin: 5,
+                            tester: this.getContext().getUser(),
                             test_case: cases[1]
                         });                        
                     }
                 }
             }
         });
+    },
+    _makeTestCaseResult: function(test_case,verdict,steps){
+        var me = this;
+        this.logger.log("_makeTestCaseResult");
+        this.getEl().mask("Saving Test Case Result");
+        
+        var build = this.down('#build_box').getValue();
+        if ( !build ) { build = 'unknown'; }
+        
+        var step_array = ["Step|Verdict|Tester|Timestamp"];
+        Ext.Array.each(steps, function(step){
+            var display_index = step.get('StepIndex') + 1;
+            
+            step_array.push(
+                display_index + "|" +
+                step.get('Verdict') + "|" + 
+                step.get('Tester') + "|" + 
+                Rally.util.DateTime.toIsoString(step.get('TestDate'))
+            );
+        });
+        
+        var notes = step_array.join('<br/>');
+        
+        Rally.data.ModelFactory.getModel({
+            type: 'TestCaseResult',
+            success: function(model) {
+                me.logger.log("Got Model");
+                var tcr = Ext.create(model,{
+                    Build: build,
+                    Verdict: verdict,
+                    Date: Rally.util.DateTime.toIsoString(new Date()),
+                    TestCase: test_case.get('_ref'),
+                    Tester: me.getContext().getUser()._ref,
+                    Notes: notes
+                });
+                me.logger.log("Saving TCR");
+                tcr.save({
+                    callback: function(result,operation){
+                        me._askToCreateADefect(result,test_case,notes);
+                        me.getEl().unmask();
+                    }
+                });
+            }
+        });
+    },
+    _askToCreateADefect:function(tcr,test_case,notes){
+        // TODO: ask if the user would like to raise a defect
     }
 });
 

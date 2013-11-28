@@ -100,11 +100,14 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
+                        me._askToCreateADefect(result,test_case,notes);
                         me.getEl().unmask();
                     }
                 });
             }
         });
-        
+    },
+    _askToCreateADefect:function(tcr,test_case,notes){
+        // TODO: ask if the user would like to raise a defect
     }
 });

@@ -100,7 +100,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 },
                                 update: function(store,record,operation,modified_field_names){
                                     this.fireEvent('stepUpdated',this,store,record,operation,modified_field_names);
-                                    
+                                    this._enableAllButtons();
                                 }
                             }
                         });
@@ -115,6 +115,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             xtype:'rallygrid',
                             store: this.step_store,
                             sortableColumns: false,
+                            showRowActionsColumn: false,
                             columnCfgs: [
                                 { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
                                 { dataIndex:'Input', text:'Input', flex: 1},
@@ -178,6 +179,10 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     _disableAllButtons: function() {
         var buttons = this.query('rallybutton');
         Ext.Array.each(buttons, function(button) { button.setDisabled(true);});
+    },
+    _enableAllButtons: function() {
+        var buttons = this.query('rallybutton');
+        Ext.Array.each(buttons, function(button) { button.setDisabled(false);});
     },
     _setAllSteps: function(verdict){
         var store = this.step_store;
