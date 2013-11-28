@@ -19,7 +19,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
          * [ @String ] step_vericts  An array of valid verdicts for each step 
          */
         step_verdicts: ['Not Run','Pass','Fail'],
-        step_verdict_store: null
+        step_verdict_store: null,
+        tester: null
     },
     items: [
         {xtype:'container',itemId:'summary_box'},
@@ -33,20 +34,26 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     },
     initComponent: function() {
         this.callParent(arguments);
-//        this.addEvents(
-//            /**
-//             * @event settingsChosen
-//             * Fires when user clicks done after making settings choices
-//             * @param {Rally.technicalservices.SettingsDialog} this
-//             * @param {hash} config settings
-//             */
-//            'settingsChosen',
-//            /**
-//             * @event cancelChosen
-//             * Fires when user clicks the cancel button
-//             */
-//            'cancelChosen'
-//        );
+        this.addEvents(
+            /**
+             * @event verdictChosen
+             * Fires when user clicks one of the verdict buttons
+             * @param {Rally.technicalservices.TestStepTable} this
+             * @param {model} test_case 
+             * @param {String} verdict
+             * @param [{Record}] steps 
+             */
+            'verdictChosen',
+            /**
+             * @event stepUpdated
+             * Fires when user modifies one of the steps (e.g., to set a verdict to the step)
+             * @param {Rally.technicalservices.TestStepTable} this
+             * @param {Rally.data.custom.Store} step_store  The data store holding the steps in the table
+             * @param {Record} step The step that changed
+             * @param [{String}] modified_field_names  The fields that changed on the record 
+             */
+            'stepUpdated'
+        );
         this._defineStepVerdictStore();
         this._setSummary();
         this._makeGrid();
@@ -85,19 +92,31 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         this.step_store = Ext.create('Rally.data.custom.Store',{
                             data: steps,
                             listeners: {
+                                scope: this,
                                 load: function(store,records) {
                                     Ext.Array.each(records,function(record){
                                         record.set('Verdict','Not Run')
                                     });
+                                },
+                                update: function(store,record,operation,modified_field_names){
+                                    this.fireEvent('stepUpdated',this,store,record,operation,modified_field_names);
+                                    
                                 }
                             }
                         });
+                        
+                        var addOneRenderer = function(value) {
+                            if (Ext.isNumber(value)) {
+                                return value + 1;
+                            }
+                            return value;
+                        };
                         this.down('#grid_box').add({
                             xtype:'rallygrid',
                             store: this.step_store,
                             sortableColumns: false,
                             columnCfgs: [
-                                { dataIndex:'StepIndex', text:'Step'},
+                                { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
                                 { dataIndex:'Input', text:'Input', flex: 1},
                                 { dataIndex:'ExpectedResult',text:'Expected Result', flex: 1},
                                 { dataIndex:'Verdict',text:'Step Verdict', editor: {
@@ -129,10 +148,36 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                                 this._setAllSteps('Pass');
                             } 
                         });
+                        this.down('#action_box').add({
+                            xtype: 'rallybutton',
+                            itemId: 'save_pass_button',
+                            text: 'Pass This Test',
+                            disabled: false,
+                            scope: this,
+                            handler: function() {
+                                this._disableAllButtons();
+                                this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
+                            } 
+                        });
+                        this.down('#action_box').add({
+                            xtype: 'rallybutton',
+                            itemId: 'save_fail_button',
+                            text: 'Fail This Test',
+                            disabled: false,
+                            scope: this,
+                            handler: function() {
+                                this._disableAllButtons();
+                                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
+                            } 
+                        });
                     }
                 }
             });
         }
+    },
+    _disableAllButtons: function() {
+        var buttons = this.query('rallybutton');
+        Ext.Array.each(buttons, function(button) { button.setDisabled(true);});
     },
     _setAllSteps: function(verdict){
         var store = this.step_store;
@@ -141,5 +186,15 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             var step = store.getAt(i);
             step.set('Verdict',verdict);
         }
+    },
+    _getAllSteps: function() {
+        var steps = [];
+        var store = this.step_store;
+        var step_count = store.getCount();
+        for ( var i=0;i<step_count;i++ ) {
+            var step = store.getAt(i);
+            steps.push(step);
+        }
+        return steps;
     }
 });
