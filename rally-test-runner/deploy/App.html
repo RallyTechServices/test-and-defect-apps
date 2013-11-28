@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Nov 28 2013 10:57:32 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Nov 28 2013 15:22:43 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Nov 28 2013 10:57:32 GMT-0800 (PST)";
-        var CHECKSUM = 22215637085;
+        var APP_BUILD_DATE = "Thu Nov 28 2013 15:22:43 GMT-0800 (PST)";
+        var CHECKSUM = 39516115576;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -136,6 +136,166 @@ Ext.define('Rally.technicalservices.Logger',{
 
 });
 
+Ext.define('Rally.technicalservices.TestCaseChooser',{
+    extend:'Rally.ui.dialog.Dialog',
+    alias:'widget.tstestcasechooser',
+    config: {
+        title:'Choose Parents of Test Cases',
+        width: 300,
+        multiple: 'MULTI'
+    },
+    items: [{
+        xtype: 'panel',
+        border: false,
+        defaults: {
+            padding: 5,
+            margin: 5
+        },
+        items: [        
+            {xtype:'container',itemId:'iteration_selector_box'},
+            {xtype:'container',itemId:'grid_box'}
+        ]
+    }],
+    constructor: function(config){
+        this.mergeConfig(config);
+        this.callParent([this.config]);
+    },
+    initComponent: function() {
+        this.callParent(arguments);
+        this.addEvents(
+            /**
+             * @event selectionMade
+             * Fires when user clicks done after making choices
+             * @param {Rally.technicalservices.TestCaseChooser} this
+             * @param [{model}] array of chosen test cases
+             */
+            'selectionMade',
+            /**
+             * @event cancelChosen
+             * Fires when user clicks the cancel button
+             */
+            'cancelChosen'
+        );
+        this._buildButtons();
+        this._addIterationChooser();
+    },
+    _addIterationChooser: function() {
+        this.down('#iteration_selector_box').add({
+            xtype:'rallyiterationcombobox',
+            fieldLabel:'Iteration',
+            labelWidth: 50,
+            listeners: {
+                scope: this,
+                change: function(ib,new_value){
+                    this._getItemsAndMakeGrid(ib.getQueryFromSelected());
+                }
+            }
+        });
+    },
+    _buildButtons: function() {
+        this.down('panel').addDocked({
+            xtype: 'toolbar',
+            dock: 'bottom',
+            padding: '0 0 10 0',
+            layout: {
+                type: 'hbox',
+                pack: 'center'
+            },
+            ui: 'footer',
+            items: [
+                {
+                    xtype: 'rallybutton',
+                    itemId:'run_button',
+                    text: 'Run',
+                    disabled: true,
+                    scope: this,
+                    userAction: 'clicked done in dialog',
+                    handler: function() {
+                        this.fireEvent('selectionMade', this, this._getTestCaseList());
+                        this.close();
+                    }
+                },
+                {
+                    xtype: 'rallybutton',
+                    text: 'Cancel',
+                    handler: function() {
+                        this.fireEvent('cancelChosen');
+                        this.close()
+                    },
+                    scope: this
+                }
+            ]
+        });
+    },
+    _getTestCaseList: function() {
+        return this.selectionModel.getSelection();
+    },
+    _getItemsAndMakeGrid: function(filter){
+        var me = this;
+                
+        Deft.Promise.all([me._getItems("TestSet",filter), me._getItems("HierarchicalRequirement"), me._getItems("Defect",filter)]).then({
+            success: function(records_by_type){
+                var records = [];
+                Ext.Array.each(records_by_type, function(records_for_type){
+                    records = Ext.Array.push(records,records_for_type);
+                });
+                me._addGrid(records);
+            }
+        });
+    },
+    _getItems: function(model,filter) {
+        var fetch = ['ObjectID','Name','FormattedID','TestCases'];
+        var deferred = Ext.create('Deft.Deferred');
+        Ext.create('Rally.data.wsapi.Store',{
+            model:model,
+            filter: filter,
+            fetch: fetch,
+            autoLoad: true,
+            listeners: {
+                scope: this,
+                load: function(store,items){
+                    var records = [];
+                    Ext.Array.each(items, function(item){
+                        if (item.get('TestCases') && item.get('TestCases').Count > 0 ) {
+                            records.push({
+                                FormattedID:item.get('FormattedID'),
+                                ObjectID:item.get('ObjectID'),
+                                Name:item.get('Name'),
+                                TestCases:item.get('TestCases'),
+                                _type:item.get('_type')
+                            });
+                        }
+                    });
+                    deferred.resolve(records);
+                }
+            }
+        });
+        return deferred.promise;
+    },
+    _addGrid: function(records){
+        var store = Ext.create('Rally.data.custom.Store',{ data: records });
+        this.down('#grid_box').removeAll();
+        
+        var mode = this.multiple ? 'MULTI' : 'SINGLE';
+        this.selectionModel = Ext.create('Rally.ui.selection.CheckboxModel', {
+            mode: mode,
+            allowDeselect: true
+        });
+            
+        this.down('#grid_box').add({
+            xtype:'rallygrid',
+            store:store,
+            selModel:this.selectionModel,
+            columnCfgs:  [
+                {text:'id',dataIndex:'FormattedID'},
+                {text:'Name',dataIndex:'Name', flex: 1}
+            ]
+        });
+        
+        this.down('#run_button').setDisabled(false);
+    }
+    
+});
 Ext.define('Rally.technicalservices.TestStepDialog',{
     extend: 'Rally.ui.dialog.Dialog',
     alias: 'widget.tssettingsdialog',
@@ -552,7 +712,7 @@ Ext.define('CustomApp', {
     logger: new Rally.technicalservices.Logger(),
     items: [
         {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
-        {xtype:'container',itemId:'test_run', margin: 5, items: [
+        {xtype:'container',itemId:'test_run', defaults: { padding: 5, margin: 5 }, layout: {type:'hbox'}, items: [
             {
                 xtype:'rallytextfield',
                 itemId:'build_box',
@@ -563,9 +723,89 @@ Ext.define('CustomApp', {
         {xtype:'tsinfolink'}
     ],
     launch: function() {
-        //this.down('#message_box').update(this.getContext().getUser());
-
-        Ext.create('Rally.data.WsapiDataStore',{
+        this._addSettingsButton();
+    },
+    _addSettingsButton: function() {
+        this.down('#test_run').add( {
+            xtype:'rallybutton',
+            text: 'Choose Test Parents',
+            disabled: false,
+            scope: this,
+            handler: function() {
+                if ( this.dialog ) { this.dialog.destroy(); }
+                this.dialog = Ext.create('Rally.technicalservices.TestCaseChooser',{
+                    listeners: {
+                        scope: this,
+                        selectionMade: function(dialog, parents) {
+                            this._makeParentBoxes(parents);
+                        }
+                    }
+                });
+                
+                this.dialog.show();
+                
+            } 
+        });
+    },
+    _makeParentBoxes: function(parents){
+        var me = this;
+        Ext.Array.each(parents,function(parent){
+            var container = this.down('#test_box').add({
+                xtype:'container',
+                margin: 10,
+                items: [{xtype:'container',cls:'title',html:parent.get('FormattedID') + ": " + parent.get('Name')}]
+            });
+            Rally.data.ModelFactory.getModel({
+                type:parent.get('_type'),
+                success:function(model){
+                    model.load(parent.get('ObjectID'),{
+                        fetch:['TestCases'],
+                        callback:function(result,operation){
+                            me._getTestCasesForParent(result,container);
+                        }
+                    });
+                }
+            });
+        },this);
+    },
+    _getTestCasesForParent: function(parent,container) {
+        var me = this;
+        parent.getCollection('TestCases').load({
+            fetch: ['Name','FormattedID','Steps','WorkProduct'],
+            scope: this,
+            callback: function(cases,operation,success){
+                Ext.Array.each(cases, function(tc){
+                    container.add({
+                        xtype: 'tsteststeptable',
+                        margin: 10,
+                        test_case: tc,
+                        tester: me.getContext().getUser(),
+                        listeners: {
+                            scope: me,
+                            verdictChosen: function(table, test_case, verdict, steps) {
+                                this._makeTestCaseResult(test_case,verdict,steps);
+                            },
+                            stepUpdated: function(table,store,step,operation,modified_field_names){
+                                this.logger.log("Step Changed",step,modified_field_names);
+                                if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
+                                    var verdict = step.get('Verdict');
+                                    if ( verdict === "Not Run" ) {
+                                        step.set('Tester',null);
+                                        step.set('TestDate',null);
+                                    } else {
+                                        step.set('Tester',this.getContext().getUser().UserName);
+                                        step.set('TestDate',new Date());
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    },
+    _getTestCases: function(parent,container) {
+        Ext.create('Rally.data.wsapi.Store',{
             autoLoad: true,
             model: 'TestCase',
             fetch: ['Name','FormattedID','Steps','WorkProduct'],
@@ -574,9 +814,9 @@ Ext.define('CustomApp', {
                 scope: this,
                 load: function(store,cases) {
                     Ext.Array.each(cases, function(tc){
-                        this.down('#test_box').add({
+                        container.add({
                             xtype: 'tsteststeptable',
-                            margin: 5,
+                            margin: 10,
                             test_case: tc,
                             tester: this.getContext().getUser(),
                             listeners: {

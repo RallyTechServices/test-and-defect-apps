@@ -5,7 +5,7 @@ Ext.define('CustomApp', {
     logger: new Rally.technicalservices.Logger(),
     items: [
         {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
-        {xtype:'container',itemId:'test_run', margin: 5, items: [
+        {xtype:'container',itemId:'test_run', defaults: { padding: 5, margin: 5 }, layout: {type:'hbox'}, items: [
             {
                 xtype:'rallytextfield',
                 itemId:'build_box',
@@ -16,9 +16,89 @@ Ext.define('CustomApp', {
         {xtype:'tsinfolink'}
     ],
     launch: function() {
-        //this.down('#message_box').update(this.getContext().getUser());
-
-        Ext.create('Rally.data.WsapiDataStore',{
+        this._addSettingsButton();
+    },
+    _addSettingsButton: function() {
+        this.down('#test_run').add( {
+            xtype:'rallybutton',
+            text: 'Choose Test Parents',
+            disabled: false,
+            scope: this,
+            handler: function() {
+                if ( this.dialog ) { this.dialog.destroy(); }
+                this.dialog = Ext.create('Rally.technicalservices.TestCaseChooser',{
+                    listeners: {
+                        scope: this,
+                        selectionMade: function(dialog, parents) {
+                            this._makeParentBoxes(parents);
+                        }
+                    }
+                });
+                
+                this.dialog.show();
+                
+            } 
+        });
+    },
+    _makeParentBoxes: function(parents){
+        var me = this;
+        Ext.Array.each(parents,function(parent){
+            var container = this.down('#test_box').add({
+                xtype:'container',
+                margin: 10,
+                items: [{xtype:'container',cls:'title',html:parent.get('FormattedID') + ": " + parent.get('Name')}]
+            });
+            Rally.data.ModelFactory.getModel({
+                type:parent.get('_type'),
+                success:function(model){
+                    model.load(parent.get('ObjectID'),{
+                        fetch:['TestCases'],
+                        callback:function(result,operation){
+                            me._getTestCasesForParent(result,container);
+                        }
+                    });
+                }
+            });
+        },this);
+    },
+    _getTestCasesForParent: function(parent,container) {
+        var me = this;
+        parent.getCollection('TestCases').load({
+            fetch: ['Name','FormattedID','Steps','WorkProduct'],
+            scope: this,
+            callback: function(cases,operation,success){
+                Ext.Array.each(cases, function(tc){
+                    container.add({
+                        xtype: 'tsteststeptable',
+                        margin: 10,
+                        test_case: tc,
+                        tester: me.getContext().getUser(),
+                        listeners: {
+                            scope: me,
+                            verdictChosen: function(table, test_case, verdict, steps) {
+                                this._makeTestCaseResult(test_case,verdict,steps);
+                            },
+                            stepUpdated: function(table,store,step,operation,modified_field_names){
+                                this.logger.log("Step Changed",step,modified_field_names);
+                                if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
+                                    var verdict = step.get('Verdict');
+                                    if ( verdict === "Not Run" ) {
+                                        step.set('Tester',null);
+                                        step.set('TestDate',null);
+                                    } else {
+                                        step.set('Tester',this.getContext().getUser().UserName);
+                                        step.set('TestDate',new Date());
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    },
+    _getTestCases: function(parent,container) {
+        Ext.create('Rally.data.wsapi.Store',{
             autoLoad: true,
             model: 'TestCase',
             fetch: ['Name','FormattedID','Steps','WorkProduct'],
@@ -27,9 +107,9 @@ Ext.define('CustomApp', {
                 scope: this,
                 load: function(store,cases) {
                     Ext.Array.each(cases, function(tc){
-                        this.down('#test_box').add({
+                        container.add({
                             xtype: 'tsteststeptable',
-                            margin: 5,
+                            margin: 10,
                             test_case: tc,
                             tester: this.getContext().getUser(),
                             listeners: {
