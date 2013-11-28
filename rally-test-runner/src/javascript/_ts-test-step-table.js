@@ -70,7 +70,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     _setSummary: function() {
         this.down('#summary_box').add({
             xtype:'container',
-            html:'Test Case: ' + this.test_case.get('FormattedID') + ": " + this.test_case.get('Name')
+            cls: 'title',
+            html: this.test_case.get('FormattedID') + ": " + this.test_case.get('Name')
         });
     },
     _makeGrid: function() {
@@ -116,6 +117,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             store: this.step_store,
                             sortableColumns: false,
                             showRowActionsColumn: false,
+                            showPagingToolbar: false,
                             columnCfgs: [
                                 { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
                                 { dataIndex:'Input', text:'Input', flex: 1},

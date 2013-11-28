@@ -1,5 +1,14 @@
 .app {
 }
+
+.title {
+    font-family: ProximaNova, Helvetica, Arial;
+    font-size: 18px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+}
+
 .tsinfolink {
     position:absolute;
     right:0px;

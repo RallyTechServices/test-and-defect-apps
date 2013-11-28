@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Nov 28 2013 10:42:57 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Nov 28 2013 10:57:32 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Nov 28 2013 10:42:57 GMT-0800 (PST)";
-        var CHECKSUM = 21783878594;
+        var APP_BUILD_DATE = "Thu Nov 28 2013 10:57:32 GMT-0800 (PST)";
+        var CHECKSUM = 22215637085;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -408,7 +408,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     _setSummary: function() {
         this.down('#summary_box').add({
             xtype:'container',
-            html:'Test Case: ' + this.test_case.get('FormattedID') + ": " + this.test_case.get('Name')
+            cls: 'title',
+            html: this.test_case.get('FormattedID') + ": " + this.test_case.get('Name')
         });
     },
     _makeGrid: function() {
@@ -454,6 +455,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             store: this.step_store,
                             sortableColumns: false,
                             showRowActionsColumn: false,
+                            showPagingToolbar: false,
                             columnCfgs: [
                                 { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
                                 { dataIndex:'Input', text:'Input', flex: 1},
@@ -700,6 +702,15 @@ Ext.define('CustomApp', {
 
 .app {
 }
+
+.title {
+    font-family: ProximaNova, Helvetica, Arial;
+    font-size: 18px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+}
+
 .tsinfolink {
     position:absolute;
     right:0px;
