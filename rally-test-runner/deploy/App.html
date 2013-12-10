@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Nov 28 2013 15:22:43 GMT-0800 (PST) -->
+    <!--  Build Date: Mon Dec 09 2013 17:38:03 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Nov 28 2013 15:22:43 GMT-0800 (PST)";
-        var CHECKSUM = 39516115576;
+        var APP_BUILD_DATE = "Mon Dec 09 2013 17:38:03 GMT-0800 (PST)";
+        var CHECKSUM = 39616635218;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -142,6 +142,7 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
     config: {
         title:'Choose Parents of Test Cases',
         width: 300,
+        height: 300,
         multiple: 'MULTI'
     },
     items: [{
@@ -285,6 +286,7 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
         this.down('#grid_box').add({
             xtype:'rallygrid',
             store:store,
+            height: 150,
             selModel:this.selectionModel,
             columnCfgs:  [
                 {text:'id',dataIndex:'FormattedID'},
