@@ -159,7 +159,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         disabled: false,
                         scope: this,
                         handler: function() {
-                            this._disableAllButtons();
+                            //this._disableAllButtons();
                             this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
                         } 
                     });
@@ -170,7 +170,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         disabled: false,
                         scope: this,
                         handler: function() {
-                            this._disableAllButtons();
+                            //this._disableAllButtons();
                             this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
                         } 
                     });

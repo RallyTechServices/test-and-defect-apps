@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Dec 11 2013 15:59:56 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Dec 11 2013 16:04:59 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Dec 11 2013 15:59:56 GMT-0800 (PST)";
-        var CHECKSUM = 39641469531;
+        var APP_BUILD_DATE = "Wed Dec 11 2013 16:04:59 GMT-0800 (PST)";
+        var CHECKSUM = 38941218593;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -288,8 +288,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     scope: this,
                     userAction: 'clicked back in dialog',
                     handler: function() {
-                        //this.fireEvent('settingsChosen', this, this._getConfig());
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.current_index -= 1;
                         this._displayStep();
                     }
@@ -301,8 +300,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     scope: this,
                     userAction: 'clicked failed in dialog',
                     handler: function() {
-                        //this.fireEvent('settingsChosen', this, this._getConfig());
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.close();
                     }
                 },
@@ -314,8 +312,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     scope: this,
                     userAction: 'clicked OK in dialog',
                     handler: function(btn) {
-                        //this.fireEvent('settingsChosen', this, this._getConfig());
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.current_index += 1;
                         this._displayStep();
                     }
@@ -326,8 +323,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     itemId:'cancel_button',
                     userAction: 'clicked Cancel in dialog',
                     handler: function() {
-                        //this.fireEvent('cancelChosen');
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.close()
                     },
                     scope: this
@@ -497,7 +493,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         disabled: false,
                         scope: this,
                         handler: function() {
-                            this._disableAllButtons();
+                            //this._disableAllButtons();
                             this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
                         } 
                     });
@@ -508,7 +504,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         disabled: false,
                         scope: this,
                         handler: function() {
-                            this._disableAllButtons();
+                            //this._disableAllButtons();
                             this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
                         } 
                     });

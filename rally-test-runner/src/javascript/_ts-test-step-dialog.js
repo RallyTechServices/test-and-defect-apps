@@ -150,8 +150,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     scope: this,
                     userAction: 'clicked back in dialog',
                     handler: function() {
-                        //this.fireEvent('settingsChosen', this, this._getConfig());
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.current_index -= 1;
                         this._displayStep();
                     }
@@ -163,8 +162,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     scope: this,
                     userAction: 'clicked failed in dialog',
                     handler: function() {
-                        //this.fireEvent('settingsChosen', this, this._getConfig());
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.close();
                     }
                 },
@@ -176,8 +174,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     scope: this,
                     userAction: 'clicked OK in dialog',
                     handler: function(btn) {
-                        //this.fireEvent('settingsChosen', this, this._getConfig());
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.current_index += 1;
                         this._displayStep();
                     }
@@ -188,8 +185,7 @@ Ext.define('Rally.technicalservices.TestStepDialog',{
                     itemId:'cancel_button',
                     userAction: 'clicked Cancel in dialog',
                     handler: function() {
-                        //this.fireEvent('cancelChosen');
-                        this._disableAllButtons();
+                        //this._disableAllButtons();
                         this.close()
                     },
                     scope: this
