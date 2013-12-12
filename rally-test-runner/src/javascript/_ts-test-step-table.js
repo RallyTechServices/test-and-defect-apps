@@ -138,7 +138,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             disabled: false,
                             scope: this,
                             handler: function() {
-                                this._setAllSteps('Not Run');
+                                this.setAllSteps('Not Run');
                             } 
                         }); 
                         this.down('#action_box').add({
@@ -148,7 +148,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             disabled: false,
                             scope: this,
                             handler: function() {
-                                this._setAllSteps('Pass');
+                                this.setAllSteps('Pass');
                             } 
                         });
                     }                    
@@ -186,7 +186,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         var buttons = this.query('rallybutton');
         Ext.Array.each(buttons, function(button) { button.setDisabled(false);});
     },
-    _setAllSteps: function(verdict){
+    setAllSteps: function(verdict){
         var store = this.step_store;
         var step_count = store.getCount();
         for ( var i=0;i<step_count;i++ ) {

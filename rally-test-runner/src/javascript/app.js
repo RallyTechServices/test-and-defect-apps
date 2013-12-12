@@ -77,6 +77,7 @@ Ext.define('CustomApp', {
                             scope: me,
                             verdictChosen: function(table, test_case, verdict, steps) {
                                 this._makeTestCaseResult(test_case,verdict,steps);
+                                table.setAllSteps("Not Run");
                             },
                             stepUpdated: function(table,store,step,operation,modified_field_names){
                                 this.logger.log("Step Changed",step,modified_field_names);
@@ -178,6 +179,8 @@ Ext.define('CustomApp', {
                     callback: function(result,operation){
                         if ( verdict === "Fail" ) {
                             me._askToCreateADefect(result,test_case,notes);
+                        } else {
+                            
                         }
                         me.getEl().unmask();
                     }

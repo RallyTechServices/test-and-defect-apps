@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Dec 11 2013 16:04:59 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Dec 11 2013 16:11:44 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Dec 11 2013 16:04:59 GMT-0800 (PST)";
-        var CHECKSUM = 38941218593;
+        var APP_BUILD_DATE = "Wed Dec 11 2013 16:11:44 GMT-0800 (PST)";
+        var CHECKSUM = 39146028695;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -472,7 +472,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             disabled: false,
                             scope: this,
                             handler: function() {
-                                this._setAllSteps('Not Run');
+                                this.setAllSteps('Not Run');
                             } 
                         }); 
                         this.down('#action_box').add({
@@ -482,7 +482,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                             disabled: false,
                             scope: this,
                             handler: function() {
-                                this._setAllSteps('Pass');
+                                this.setAllSteps('Pass');
                             } 
                         });
                     }                    
@@ -520,7 +520,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         var buttons = this.query('rallybutton');
         Ext.Array.each(buttons, function(button) { button.setDisabled(false);});
     },
-    _setAllSteps: function(verdict){
+    setAllSteps: function(verdict){
         var store = this.step_store;
         var step_count = store.getCount();
         for ( var i=0;i<step_count;i++ ) {
@@ -782,6 +782,7 @@ Ext.define('CustomApp', {
                             scope: me,
                             verdictChosen: function(table, test_case, verdict, steps) {
                                 this._makeTestCaseResult(test_case,verdict,steps);
+                                table.setAllSteps("Not Run");
                             },
                             stepUpdated: function(table,store,step,operation,modified_field_names){
                                 this.logger.log("Step Changed",step,modified_field_names);
@@ -883,6 +884,8 @@ Ext.define('CustomApp', {
                     callback: function(result,operation){
                         if ( verdict === "Fail" ) {
                             me._askToCreateADefect(result,test_case,notes);
+                        } else {
+                            
                         }
                         me.getEl().unmask();
                     }
