@@ -4,7 +4,6 @@ Ext.define('CustomApp', {
 
     logger: new Rally.technicalservices.Logger(),
     items: [
-        {xtype:'container',itemId:'message_box',tpl:'Hello, <tpl>{_refObjectName}</tpl>'},
         {xtype:'container',itemId:'test_run', defaults: { padding: 5, margin: 5 }, layout: {type:'hbox'}, items: [
             {
                 xtype:'rallytextfield',
@@ -42,6 +41,7 @@ Ext.define('CustomApp', {
     },
     _makeParentBoxes: function(parents){
         var me = this;
+        this.down('#test_box').removeAll();
         Ext.Array.each(parents,function(parent){
             var container = this.down('#test_box').add({
                 xtype:'container',
