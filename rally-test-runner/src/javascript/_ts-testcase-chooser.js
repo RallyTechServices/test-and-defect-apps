@@ -96,7 +96,12 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
     _getItemsAndMakeGrid: function(filter){
         var me = this;
                 
-        Deft.Promise.all([me._getItems("TestSet",filter), me._getItems("HierarchicalRequirement"), me._getItems("Defect",filter)]).then({
+        Deft.Promise.all([
+            me._getItems("TestSet",filter), 
+            me._getItems("HierarchicalRequirement",filter), 
+            me._getItems("Defect",filter),
+            me._getItems("TestFolder",filter)
+        ]).then({
             success: function(records_by_type){
                 var records = [];
                 Ext.Array.each(records_by_type, function(records_for_type){

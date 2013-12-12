@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Dec 11 2013 16:11:44 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Dec 11 2013 16:19:14 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Dec 11 2013 16:11:44 GMT-0800 (PST)";
-        var CHECKSUM = 39146028695;
+        var APP_BUILD_DATE = "Wed Dec 11 2013 16:19:14 GMT-0800 (PST)";
+        var CHECKSUM = 39352921553;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -639,7 +639,12 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
     _getItemsAndMakeGrid: function(filter){
         var me = this;
                 
-        Deft.Promise.all([me._getItems("TestSet",filter), me._getItems("HierarchicalRequirement"), me._getItems("Defect",filter)]).then({
+        Deft.Promise.all([
+            me._getItems("TestSet",filter), 
+            me._getItems("HierarchicalRequirement",filter), 
+            me._getItems("Defect",filter),
+            me._getItems("TestFolder",filter)
+        ]).then({
             success: function(records_by_type){
                 var records = [];
                 Ext.Array.each(records_by_type, function(records_for_type){
