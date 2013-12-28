@@ -18,7 +18,8 @@ Ext.define('mockDefect',{
         {name:'PlanEstimate',type:'int'},
         {name:'id',type:'int',convert:useObjectID},
         {name:'ScheduleState',type:'string',defaultValue:'Defined'},
-        {name:'_ref',type:'string'}
+        {name:'_ref',type:'string'},
+        {name:'Notes',type:'string'}
     ]
 });
 

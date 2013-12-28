@@ -48,9 +48,10 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         this._showConnections();
     },
     _showConnections: function() {
+        this.logger.log("_showConnections");
         this.down('#cc_details').add({
             xtype:'container',
-            text: this.record.get(this.connector_field)
+            html: this.record.get(this.connector_field)
         });
     },
     _showTargetSelector: function() {
@@ -70,22 +71,59 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
                 scope: this,
                 artifactChosen: function(items) {
                     var me = this;
+                    var new_html = me.getConnectionHtml(items);
+                    this.down('#cc_details').removeAll();
                     me.down('#cc_details').add({
                         xtype:'container',
-                        html:me.getConnectionHtml(items)
+                        html: new_html
                     });
+                    this._updateRecord(new_html);
+                }
+            }
+        });
+    },
+    _updateRecord: function(new_html) {
+        this.record.set(this.connector_field,new_html);
+        this.record.save({
+            callback: function(result,operation){
+                if (!operation.wasSuccessful()) {
+                    alert("Problem. " + operation.getError());
                 }
             }
         });
     },
     getConnectionHtml: function(defects) {
         var html = [];
+        var previously_selected_oids = this.getConnectedObjectIDs();
+        if ( Ext.String.trim(this.record.get(this.connector_field)) != "" ) {
+            html.push(this.record.get(this.connector_field));
+        }
         Ext.Array.each(defects,function(defect){
-            var url = "/#/detail/defect/" + defect.get('ObjectID');
-            var innerText = defect.get('FormattedID');
-            html.push("<div><a target='_blank' href='" + url + "'>" + innerText + "</a></div>");
+            var object_id = defect.get('ObjectID');
+            if ( Ext.Array.indexOf(previously_selected_oids, object_id) === -1 ) {
+                var url = "/#/detail/defect/" + object_id;
+                var innerText = defect.get('FormattedID');
+                html.push("<div><a target='_blank' href='" + url + "'>" + innerText + "</a></div>");
+            }
         });
         return html.join('\r\n');
+    },
+    getConnectedObjectIDs: function() {
+        var me = this;
+        var oids = [];
+        var connected_html = document.createElement('div');
+        connected_html.innerHTML = "<div>" + this.record.get(this.connector_field) + "</div>";
+        
+        var anchors = Ext.dom.Query.select('a',connected_html);
+        Ext.Array.each(anchors, function(anchor){
+            var href = anchor.href.replace(/.*\//,"");
+            var href_int = parseInt(href,10);
+            if ( href_int > 0 ) {
+                oids.push(href_int);
+            }
+        });
+        me.logger.log(anchors); 
+        return oids;
     },
     onDestroy: function() {
         this.callParent(arguments);

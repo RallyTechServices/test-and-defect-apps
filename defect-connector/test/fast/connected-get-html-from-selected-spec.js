@@ -1,4 +1,4 @@
-describe("Connection Container", function() {
+describe("Connection Container Make HTML", function() {
     var source_defect = Ext.create('mockDefect',{
         FormattedID:'DE1',
         _ref: '/defect/123',
@@ -45,5 +45,31 @@ describe("Connection Container", function() {
                 "<div><a target='_blank' href='/#/detail/defect/678'>DE3</a></div>");
     });
     
+        
+    it("should not repeat for existing items",function(){
+        source_defect.set("Notes", "<div><a target='_blank' href='/#/detail/defect/789'>DE4</a></div>" );
+        
+        var other_defect1 = Ext.create('mockDefect',{
+            FormattedID:'DE2',
+            _ref: '/defect/345',
+            ObjectID: 345,
+            Name: 'Abcdef'
+        });
+        var other_defect2 = Ext.create('mockDefect',{
+            FormattedID:'DE4',
+            _ref: '/defect/789',
+            ObjectID: 789,
+            Name: 'la la '
+        });
+        
+        var connector = Ext.create('Rally.technicalservices.ui.ConnectionContainer',{
+            record:source_defect
+        });
+        
+        var html = connector.getConnectionHtml([other_defect1,other_defect2]);
+        expect(html).toBe("<div><a target='_blank' href='/#/detail/defect/789'>DE4</a></div>" +
+                "\r\n" +
+                "<div><a target='_blank' href='/#/detail/defect/345'>DE2</a></div>");
+    });
     
 });
