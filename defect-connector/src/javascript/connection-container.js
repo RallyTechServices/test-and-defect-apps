@@ -93,6 +93,7 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         });
     },
     _getConnectionHtmlForOne: function(defect){
+        var object_id = defect.get('ObjectID');
         var url = "/#/detail/defect/" + object_id;
         var innerText = defect.get('FormattedID') + " " + defect.get('Name');
         var severity = defect.get('Severity');
@@ -102,6 +103,7 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         return "<div><a target='_blank' href='" + url + "'>" + innerText + "</a></div>";
     },
     getConnectionHtml: function(defects) {
+        var me = this;
         var html = [];
         var previously_selected_oids = this.getConnectedObjectIDs();
         if ( Ext.String.trim(this.record.get(this.connector_field)) != "" ) {
