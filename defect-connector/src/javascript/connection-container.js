@@ -64,7 +64,7 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
             storeConfig: {
                 context: { project: null },
                 filters: [{ property:'FormattedID', operator:'!=', value: this.record.get('FormattedID')}],
-                fetch: ['FormattedID','Name',this.connector_field]
+                fetch: ['FormattedID','Name',this.connector_field,'Severity']
             },
             multiple: true,
             listeners: {
@@ -102,7 +102,11 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
             var object_id = defect.get('ObjectID');
             if ( Ext.Array.indexOf(previously_selected_oids, object_id) === -1 ) {
                 var url = "/#/detail/defect/" + object_id;
-                var innerText = defect.get('FormattedID');
+                var innerText = defect.get('FormattedID') + " " + defect.get('Name');
+                var severity = defect.get('Severity');
+                if (Ext.String.trim(severity) != "") {
+                    innerText += " (" + severity + ")";
+                }
                 html.push("<div><a target='_blank' href='" + url + "'>" + innerText + "</a></div>");
             }
         });

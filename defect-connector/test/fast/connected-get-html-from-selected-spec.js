@@ -11,14 +11,16 @@ describe("Connection Container Make HTML", function() {
             FormattedID:'DE2',
             _ref: '/defect/345',
             ObjectID: 345,
-            Name: 'Abcdef'
+            Name: 'Abcdef',
+            Severity: 'High'
         });
         
         var connector = Ext.create('Rally.technicalservices.ui.ConnectionContainer',{
             record:source_defect
         });
         
-        expect(connector.getConnectionHtml([other_defect])).toBe("<div><a target='_blank' href='/#/detail/defect/345'>DE2</a></div>");
+        expect(connector.getConnectionHtml([other_defect])).
+            toBe("<div><a target='_blank' href='/#/detail/defect/345'>DE2 Abcdef (High)</a></div>");
     });
     
     it("should determine saving string for multiple connected items",function(){
@@ -32,7 +34,8 @@ describe("Connection Container Make HTML", function() {
             FormattedID:'DE3',
             _ref: '/defect/678',
             ObjectID: 678,
-            Name: 'la la la'
+            Name: 'la la la',
+            Severity: 'Low'
         });
         
         var connector = Ext.create('Rally.technicalservices.ui.ConnectionContainer',{
@@ -40,9 +43,9 @@ describe("Connection Container Make HTML", function() {
         });
         
         var html = connector.getConnectionHtml([other_defect1,other_defect2]);
-        expect(html).toBe("<div><a target='_blank' href='/#/detail/defect/345'>DE2</a></div>" +
+        expect(html).toBe("<div><a target='_blank' href='/#/detail/defect/345'>DE2 Abcdef</a></div>" +
                 "\r\n" +
-                "<div><a target='_blank' href='/#/detail/defect/678'>DE3</a></div>");
+                "<div><a target='_blank' href='/#/detail/defect/678'>DE3 la la la (Low)</a></div>");
     });
     
         
@@ -69,7 +72,7 @@ describe("Connection Container Make HTML", function() {
         var html = connector.getConnectionHtml([other_defect1,other_defect2]);
         expect(html).toBe("<div><a target='_blank' href='/#/detail/defect/789'>DE4</a></div>" +
                 "\r\n" +
-                "<div><a target='_blank' href='/#/detail/defect/345'>DE2</a></div>");
+                "<div><a target='_blank' href='/#/detail/defect/345'>DE2 Abcdef</a></div>");
     });
     
 });
