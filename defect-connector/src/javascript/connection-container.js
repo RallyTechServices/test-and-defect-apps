@@ -105,7 +105,7 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
     getConnectionHtml: function(defects) {
         var me = this;
         var html = [];
-        var previously_selected_oids = this.getConnectedObjectIDs();
+        var previously_selected_oids = this.getConnectedObjectIDs(this.record);
         if ( Ext.String.trim(this.record.get(this.connector_field)) != "" ) {
             html.push(this.record.get(this.connector_field));
         }
@@ -117,11 +117,11 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         });
         return html.join('\r\n');
     },
-    getConnectedObjectIDs: function() {
+    getConnectedObjectIDs: function(defect) {
         var me = this;
         var oids = [];
         var connected_html = document.createElement('div');
-        connected_html.innerHTML = "<div>" + this.record.get(this.connector_field) + "</div>";
+        connected_html.innerHTML = "<div>" + defect.get(this.connector_field) + "</div>";
         
         var anchors = Ext.dom.Query.select('a',connected_html);
         Ext.Array.each(anchors, function(anchor){

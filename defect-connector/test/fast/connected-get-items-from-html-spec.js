@@ -14,7 +14,7 @@ describe("Connection Container Get Items", function() {
             connector_field: 'Notes'
         });
         
-        expect(connector.getConnectedObjectIDs()).toEqual([345]);
+        expect(connector.getConnectedObjectIDs(source_defect)).toEqual([345]);
     });
     
     it("should determine known items from connector field",function(){
@@ -34,7 +34,7 @@ describe("Connection Container Get Items", function() {
             connector_field:'Notes'
         });
         
-        expect(connector.getConnectedObjectIDs()).toEqual([345,678]);
+        expect(connector.getConnectedObjectIDs(source_defect)).toEqual([345,678]);
 
     });
     
@@ -55,7 +55,7 @@ describe("Connection Container Get Items", function() {
             connector_field:'Notes'
         });
         
-        expect(connector.getConnectedObjectIDs()).toEqual([345,678]);
+        expect(connector.getConnectedObjectIDs(source_defect)).toEqual([345,678]);
 
     });
     
@@ -73,7 +73,7 @@ describe("Connection Container Get Items", function() {
             connector_field:'Notes'
         });
         
-        expect(connector.getConnectedObjectIDs()).toEqual([]);
+        expect(connector.getConnectedObjectIDs(source_defect)).toEqual([]);
     });
     
         
@@ -91,7 +91,7 @@ describe("Connection Container Get Items", function() {
             connector_field:'Notes'
         });
         
-        expect(connector.getConnectedObjectIDs()).toEqual([]);
+        expect(connector.getConnectedObjectIDs(source_defect)).toEqual([]);
     });
     
 });

@@ -67,7 +67,7 @@ Ext.define('CustomApp', {
             title: 'Choose Defect',
             storeConfig: {
                 context: { project: null },
-                fetch: ['FormattedID','Name',me.connector_field]
+                fetch: ['FormattedID','Name',me.connector_field,'Severity']
             },
             listeners: {
                 scope: this,
