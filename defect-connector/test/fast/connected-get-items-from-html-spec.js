@@ -5,7 +5,8 @@ describe("Connection Container Get Items", function() {
             _ref: '/defect/123',
             ObjectID: 123,
             Name: 'Abc',
-            Notes: "<div><a target='_blank' href='/#/detail/defect/345'>DE2</a></div>" 
+            Severity: 'High',
+            Notes: "<div><a target='_blank' href='/#/detail/defect/345'>DE2 Abc (High)</a></div>" 
         });
         
         var connector = Ext.create('Rally.technicalservices.ui.ConnectionContainer',{
@@ -22,9 +23,10 @@ describe("Connection Container Get Items", function() {
             _ref: '/defect/123',
             ObjectID: 123,
             Name: 'Abc',
-            Notes: "<div><a target='_blank' href='/#/detail/defect/345'>DE2</a></div>" +
+            Severity: 'Low',
+            Notes: "<div><a target='_blank' href='/#/detail/defect/345'>DE2 xyz (Low)</a></div>" +
                 "\r\n" +
-                "<div><a target='_blank' href='/#/detail/defect/678'>DE3</a></div>" 
+                "<div><a target='_blank' href='/#/detail/defect/678'>DE3 ad adf (Medium)</a></div>" 
         });
         
         var connector = Ext.create('Rally.technicalservices.ui.ConnectionContainer',{

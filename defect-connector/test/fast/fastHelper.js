@@ -19,7 +19,8 @@ Ext.define('mockDefect',{
         {name:'id',type:'int',convert:useObjectID},
         {name:'ScheduleState',type:'string',defaultValue:'Defined'},
         {name:'_ref',type:'string'},
-        {name:'Notes',type:'string'}
+        {name:'Notes',type:'string'},
+        {name:'Severity',type:'string'}
     ]
 });
 
