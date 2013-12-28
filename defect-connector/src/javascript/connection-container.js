@@ -92,6 +92,15 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
             }
         });
     },
+    _getConnectionHtmlForOne: function(defect){
+        var url = "/#/detail/defect/" + object_id;
+        var innerText = defect.get('FormattedID') + " " + defect.get('Name');
+        var severity = defect.get('Severity');
+        if (Ext.String.trim(severity) != "") {
+            innerText += " (" + severity + ")";
+        }
+        return "<div><a target='_blank' href='" + url + "'>" + innerText + "</a></div>";
+    },
     getConnectionHtml: function(defects) {
         var html = [];
         var previously_selected_oids = this.getConnectedObjectIDs();
@@ -101,13 +110,7 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         Ext.Array.each(defects,function(defect){
             var object_id = defect.get('ObjectID');
             if ( Ext.Array.indexOf(previously_selected_oids, object_id) === -1 ) {
-                var url = "/#/detail/defect/" + object_id;
-                var innerText = defect.get('FormattedID') + " " + defect.get('Name');
-                var severity = defect.get('Severity');
-                if (Ext.String.trim(severity) != "") {
-                    innerText += " (" + severity + ")";
-                }
-                html.push("<div><a target='_blank' href='" + url + "'>" + innerText + "</a></div>");
+                html.push(me._getConnectionHtmlForOne(defect));
             }
         });
         return html.join('\r\n');
