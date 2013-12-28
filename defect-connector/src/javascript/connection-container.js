@@ -43,7 +43,6 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
                 this._showTargetSelector();
             },
             scope: this
-            
         });
         this._showConnections();
     },
@@ -77,18 +76,34 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
                         xtype:'container',
                         html: new_html
                     });
-                    this._updateRecord(new_html);
+                    this._updateRecord(this.record,new_html);
+                    this._updateOtherRecords(items);
                 }
             }
         });
     },
-    _updateRecord: function(new_html) {
-        this.record.set(this.connector_field,new_html);
-        this.record.save({
+    _updateRecord: function(record,new_html) {
+        record.set(this.connector_field,new_html);
+        record.save({
             callback: function(result,operation){
                 if (!operation.wasSuccessful()) {
                     alert("Problem. " + operation.getError());
                 }
+            }
+        });
+    },
+    _updateOtherRecords: function(items) {
+        var me = this;
+        Ext.Array.each(items, function(item){
+            var object_id = me.record.get('ObjectID');
+            var previously_selected_oids = me.getConnectedObjectIDs(item);
+            if ( Ext.Array.indexOf(previously_selected_oids, object_id) === -1 ) {
+                var html = [];
+                if ( Ext.String.trim(item.get(me.connector_field)) != "" ) {
+                    html.push(item.get(me.connector_field));
+                }
+                html.push( me._getConnectionHtmlForOne(me.record) );
+                me._updateRecord(item,html.join('\r\n'));
             }
         });
     },
