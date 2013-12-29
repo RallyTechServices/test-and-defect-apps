@@ -48,9 +48,44 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
     },
     _showConnections: function() {
         this.logger.log("_showConnections");
-        this.down('#cc_details').add({
-            xtype:'container',
-            html: this.record.get(this.connector_field)
+        if ( this.down('#detail_grid') ) { this.down('#detail_grid').destroy(); }
+        
+        Ext.create('Rally.data.wsapi.Store',{
+            model:'Defect',
+            context: { project:null },
+            autoLoad: true,
+            filters: this._getFilterForCurrentItems(this.record),
+            fetch:['FormattedID','Name','Severity',this.connector_field],
+            listeners: {
+                scope: this,
+                load: function(store,records){
+                    if ( this.down('#detail_grid') ) { this.down('#detail_grid').destroy(); }
+                    this.down('#cc_details').add({
+                        xtype:'rallygrid',
+                        store: store,
+                        itemId: 'detail_grid',
+                        showPagingToolbar: false,
+                        enableEditing: false,
+                        enableRanking: false,
+                        enableColumnMove: false,
+                        showRowActionsColumn: false,
+                        columnCfgs: [
+                            { text:'id', dataIndex:'FormattedID' },
+                            { text:'Name', dataIndex:'Name', flex: 1 },
+                            { text:'Severity', dataIndex:'Severity' },
+                            { text:'Remove', xtype:'templatecolumn', tpl:'<div class="ts-action-remove"> </div>' }
+                        ],
+                        listeners: {
+                            scope: this,
+                            cellclick: function(grid,cell,index,item) {
+                                if ( index == 3 ) {
+                                    this._disconnectFrom(item);
+                                }
+                            }
+                        }
+                    });  
+                }
+            }
         });
     },
     _showTargetSelector: function() {
@@ -72,22 +107,23 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
                     var me = this;
                     var new_html = me.getConnectionHtml(items);
                     this.down('#cc_details').removeAll();
-                    me.down('#cc_details').add({
-                        xtype:'container',
-                        html: new_html
-                    });
-                    this._updateRecord(this.record,new_html);
+                    this._updateRecord(this.record,new_html,true);
                     this._updateOtherRecords(items);
                 }
             }
         });
     },
-    _updateRecord: function(record,new_html) {
+    _updateRecord: function(record,new_html,refresh) {
+        var me = this;
         record.set(this.connector_field,new_html);
         record.save({
             callback: function(result,operation){
                 if (!operation.wasSuccessful()) {
                     alert("Problem. " + operation.getError());
+                } else {
+                    if ( refresh ) {
+                        me. _showConnections();
+                    }
                 }
             }
         });
@@ -103,7 +139,7 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
                     html.push(item.get(me.connector_field));
                 }
                 html.push( me._getConnectionHtmlForOne(me.record) );
-                me._updateRecord(item,html.join('\r\n'));
+                me._updateRecord(item,html.join('\r\n'),false);
             }
         });
     },
@@ -132,6 +168,34 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         });
         return html.join('\r\n');
     },
+    _getFilterForCurrentItems: function(defect){
+        this.logger.log("_getFilterForCurrentItems");
+        var oids = this.getConnectedObjectIDs(defect);
+        var filters;
+        
+        if ( oids.length === 0 ) {
+            filters = Ext.create('Rally.data.wsapi.Filter',{
+                property:'ObjectID',
+                value: -1
+            });
+        } else {
+            filters = Ext.create('Rally.data.wsapi.Filter',{
+                property:'ObjectID',
+                operator:'=',
+                value:oids[0]
+            });
+            
+            for ( var i=1;i<oids.length;i++ ) {
+                filters = filters.or(Ext.create('Rally.data.wsapi.Filter',{
+                    property:'ObjectID',
+                    operator:'=',
+                    value:oids[i]
+                }));
+            }
+        }
+        this.logger.log(filters.toString());
+        return filters;
+    },
     getConnectedObjectIDs: function(defect) {
         var me = this;
         var oids = [];
@@ -149,9 +213,31 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
         me.logger.log(anchors); 
         return oids;
     },
+    getHtmlAfterRemove:function(defect,remove_oid) {
+        var connected_html = document.createElement('div');
+        connected_html.innerHTML = defect.get(this.connector_field);
+        var anchors = Ext.dom.Query.select('a',connected_html);
+        Ext.Array.each(anchors, function(anchor){
+            var href = anchor.href.replace(/.*\//,"");
+            var href_int = parseInt(href,10);
+            if ( href_int == remove_oid ) {
+                // the anchor is wrapped by a div; we want to remove the whole thing
+                anchor.parentNode.parentNode.removeChild(anchor.parentNode);
+            }
+        });
+        return connected_html.innerHTML;
+    },
     onDestroy: function() {
         this.callParent(arguments);
         if ( this.dialog ){this.dialog.destroy();}
+    },
+    _disconnectFrom: function(other_defect) {
+        this.logger.log("_disconnectFrom",other_defect);
+        var html_of_target_links = this.getHtmlAfterRemove(this.record,other_defect.get('ObjectID'));
+        var html_of_links_on_target = this.getHtmlAfterRemove(other_defect,this.record.get('ObjectID'));
+        
+        this._updateRecord(this.record,html_of_target_links,true);
+        this._updateRecord(other_defect,html_of_links_on_target,false)
     }
     
 });
