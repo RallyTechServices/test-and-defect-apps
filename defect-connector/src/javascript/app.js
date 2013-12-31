@@ -67,6 +67,10 @@ Ext.define('CustomApp', {
             title: 'Choose Defect',
             storeConfig: {
                 context: { project: null },
+                filters: [
+                    {property:"State",operator:"!=",value:"Fixed"},
+                    {property:"State",operator:"!=",value:"Closed"}
+                ],
                 fetch: ['FormattedID','Name',me.connector_field,'Severity']
             },
             listeners: {
