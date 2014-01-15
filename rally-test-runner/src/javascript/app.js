@@ -1,7 +1,6 @@
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
-
     logger: new Rally.technicalservices.Logger(),
     items: [
         {xtype:'container',itemId:'test_run', defaults: { padding: 5, margin: 5 }, layout: {type:'hbox'}, items: [
@@ -18,6 +17,7 @@ Ext.define('CustomApp', {
         this._addSettingsButton();
     },
     _addSettingsButton: function() {
+        this.logger.log("_addSettingsButton");
         this.down('#test_run').add( {
             xtype:'rallybutton',
             text: 'Choose Test Parents',
@@ -33,13 +33,12 @@ Ext.define('CustomApp', {
                         }
                     }
                 });
-                
                 this.dialog.show();
-                
             } 
         });
     },
     _makeParentBoxes: function(parents){
+        this.logger.log("_makeParentBoxes");
         var me = this;
         this.down('#test_box').removeAll();
         Ext.Array.each(parents,function(parent){
@@ -62,83 +61,98 @@ Ext.define('CustomApp', {
         },this);
     },
     _getTestCasesForParent: function(parent,container) {
+        this.logger.log("_getTestCasesForParent");
         var me = this;
         parent.getCollection('TestCases').load({
             fetch: ['Name','FormattedID','Steps','WorkProduct'],
             scope: this,
             callback: function(cases,operation,success){
-                Ext.Array.each(cases, function(tc){
-                    container.add({
-                        xtype: 'tsteststeptable',
-                        margin: 10,
-                        test_case: tc,
-                        tester: me.getContext().getUser(),
-                        listeners: {
-                            scope: me,
-                            verdictChosen: function(table, test_case, verdict, steps) {
-                                this._makeTestCaseResult(test_case,verdict,steps);
-                                table.setAllSteps("Not Run");
-                            },
-                            stepUpdated: function(table,store,step,operation,modified_field_names){
-                                this.logger.log("Step Changed",step,modified_field_names);
-                                if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
-                                    var verdict = step.get('Verdict');
-                                    if ( verdict === "Not Run" ) {
-                                        step.set('Tester',null);
-                                        step.set('TestDate',null);
-                                    } else {
-                                        step.set('Tester',this.getContext().getUser().UserName);
-                                        step.set('TestDate',new Date());
-                                    }
-                                }
-                            }
-                        }
-                    });
-                });
+                this.logger.log("  _getTestCasesForParent callback", cases.length);
+                this._getTestStepsForCases(container,cases);
             }
         });
     },
-    _getTestCases: function(parent,container) {
+    _hashToArray: function(hash) {
+        var result = [];
+        Ext.Object.each(hash,function(key,value){
+            result.push(value);
+        });
+        return result;
+    },
+    _getTestStepsForCases: function(container,cases) {
+        this.logger.log("_getTestStepsForCases ",cases.length);
+        var case_filters = [];
+        var case_hash = {};
+
+        Ext.Array.each(cases,function(tc){ 
+            case_filters.push({property:'TestCase.ObjectID',value:tc.get('ObjectID')});
+            tc.set('_steps',[]);
+            case_hash[tc.get('ObjectID')] = tc;
+        });
+        
+        var filters = Ext.create('Rally.data.wsapi.Filter',case_filters[0]);
+        for ( var i=1;i<case_filters.length;i++){
+            filters = filters.or(Ext.create('Rally.data.wsapi.Filter',case_filters[i]));
+        }
+        
         Ext.create('Rally.data.wsapi.Store',{
+            model:'TestCaseStep',
+            filters:filters,
             autoLoad: true,
-            model: 'TestCase',
-            fetch: ['Name','FormattedID','Steps','WorkProduct'],
-            title: 'Test Step Runner',
+            fetch: ['StepIndex','Input', 'ExpectedResult', 'TestCase', 'ObjectID'],
             listeners: {
                 scope: this,
-                load: function(store,cases) {
-                    Ext.Array.each(cases, function(tc){
-                        container.add({
-                            xtype: 'tsteststeptable',
-                            margin: 10,
-                            test_case: tc,
-                            tester: this.getContext().getUser(),
-                            listeners: {
-                                scope: this,
-                                verdictChosen: function(table, test_case, verdict, steps) {
-                                    this._makeTestCaseResult(test_case,verdict,steps);
-                                },
-                                stepUpdated: function(table,store,step,operation,modified_field_names){
-                                    this.logger.log("Step Changed",step,modified_field_names);
-                                    if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
-                                        var verdict = step.get('Verdict');
-                                        if ( verdict === "Not Run" ) {
-                                            step.set('Tester',null);
-                                            step.set('TestDate',null);
-                                        } else {
-                                            step.set('Tester',this.getContext().getUser().UserName);
-                                            step.set('TestDate',new Date());
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    }, this);
+                load: function(store,steps) {
+                    this.logger.log("found steps: ", steps.length);
+                    Ext.Array.each(steps,function(step){
+                        var tc_oid = step.get('TestCase').ObjectID
+                        if ( case_hash[tc_oid] ) {
+                            var tc_steps = case_hash[tc_oid].get('_steps');
+                            tc_steps.push(step);
+                            case_hash[tc_oid].set('_steps',tc_steps);
+                        }
+                    });
+                    this._displayTestCasesForContainer(container,this._hashToArray(case_hash));
+                    
                 }
             }
+        });        
+    },
+    _displayTestCasesForContainer: function(container,cases) {
+        this.logger.log("_displayTestCasesForContainer",cases.length);
+        var me = this;
+        Ext.Array.each(cases, function(tc){
+            container.add({
+                xtype: 'tsteststeptable',
+                margin: 10,
+                test_case: tc,
+                tester: me.getContext().getUser(),
+                listeners: {
+                    scope: me,
+                    verdictChosen: function(table, test_case, verdict, steps) {
+                        this._makeTestCaseResult(test_case,verdict,steps);
+                        table.setAllSteps("Not Run");
+                    },
+                    stepUpdated: function(table,store,step,operation,modified_field_names){
+                        this.logger.log("Step Changed",step,modified_field_names);
+                        if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
+                            var verdict = step.get('Verdict');
+                            if ( verdict === "Not Run" ) {
+                                step.set('Tester',null);
+                                step.set('TestDate',null);
+                            } else {
+                                step.set('Tester',this.getContext().getUser().UserName);
+                                step.set('TestDate',new Date());
+                            }
+                        }
+                    }
+                }
+            });
         });
     },
     _makeTestCaseResult: function(test_case,verdict,steps){
+        
+        this.logger.log("_makeTestCaseResult");
         var me = this;
         this.logger.log("_makeTestCaseResult");
         this.getEl().mask("Saving Test Case Result");

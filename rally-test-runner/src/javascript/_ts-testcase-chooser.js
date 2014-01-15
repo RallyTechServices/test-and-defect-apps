@@ -155,6 +155,7 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
             store:store,
             height: 150,
             selModel:this.selectionModel,
+            showPagingToolbar: false,
             columnCfgs:  [
                 {text:'id',dataIndex:'FormattedID'},
                 {text:'Name',dataIndex:'Name', flex: 1}
