@@ -1,7 +1,7 @@
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
-    connector_field: 'RelatedDefects',
+    connector_field: 'LinkedDefects',
     logger: new Rally.technicalservices.Logger(),
     defaults: { padding: 5 },
     items: [
