@@ -2,6 +2,9 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
+    case_verdicts: ['None',"Blocked", "Error", "Fail", "Inconclusive", "Pass"],
+    case_containers: {},
+    all_cases: {},
     items: [
         {xtype:'container',itemId:'test_run', defaults: { padding: 5, margin: 5 }, layout: {type:'hbox'}, items: [
             {
@@ -10,11 +13,13 @@ Ext.define('CustomApp', {
                 fieldLabel:'Build used for this test run'
             }
         ]},
+        {xtype:'container',itemId:'test_checks', defaults: { padding: 5, margin: 5 }, layout: {type:'hbox'}},
         {xtype:'container',itemId:'test_box'},
         {xtype:'tsinfolink'}
     ],
     launch: function() {
         this._addSettingsButton();
+        this._addCheckboxes();
     },
     _addSettingsButton: function() {
         this.logger.log("_addSettingsButton");
@@ -37,10 +42,35 @@ Ext.define('CustomApp', {
             } 
         });
     },
+    _addCheckboxes: function() {
+        var me = this;
+        var boxes = [];
+        Ext.Array.each(this.case_verdicts, function(verdict){
+            boxes.push({
+                boxLabel: verdict, 
+                name: 'rb', 
+                inputValue: verdict, 
+                checked: true
+            });
+        });
+        this.down('#test_checks').add({
+            xtype: 'checkboxgroup',
+            itemId: 'verdict_checks',
+            fieldLabel: 'Show Cases with Last Verdict of',
+            vertical: false,
+            labelWidth: 100,
+            width: 660,
+            items:boxes
+        });
+        this.down('#verdict_checks').on('change',this._revealContainers, this);
+    },
     _makeParentBoxes: function(parents){
         this.logger.log("_makeParentBoxes");
         var me = this;
         this.down('#test_box').removeAll();
+        this.case_containers = {};
+        this.all_cases = {};
+        
         Ext.Array.each(parents,function(parent){
             var container = this.down('#test_box').add({
                 xtype:'container',
@@ -64,7 +94,7 @@ Ext.define('CustomApp', {
         this.logger.log("_getTestCasesForParent");
         var me = this;
         parent.getCollection('TestCases').load({
-            fetch: ['Name','FormattedID','Steps','WorkProduct'],
+            fetch: ['Name','FormattedID','Steps','WorkProduct','LastVerdict'],
             scope: this,
             callback: function(cases,operation,success){
                 this.logger.log("  _getTestCasesForParent callback", cases.length);
@@ -121,8 +151,10 @@ Ext.define('CustomApp', {
     _displayTestCasesForContainer: function(container,cases) {
         this.logger.log("_displayTestCasesForContainer",cases.length);
         var me = this;
+
         Ext.Array.each(cases, function(tc){
-            container.add({
+            me.all_cases[tc.get('ObjectID')] = tc;
+            me.case_containers[tc.get('ObjectID')] = container.add({
                 xtype: 'tsteststeptable',
                 margin: 10,
                 test_case: tc,
@@ -148,10 +180,36 @@ Ext.define('CustomApp', {
                     }
                 }
             });
+            
+            var selected_verdicts = me.down('#verdict_checks').getValue().rb;
+            me.logger.log("show ", selected_verdicts );
+            
+            var verdict = tc.get('LastVerdict') || "None";
+        
+            if ( Ext.Array.indexOf(selected_verdicts,verdict) == -1 ) {
+                me.logger.log("Hiding ", tc.get("Name"), " (",tc.get("LastVerdict"),")");
+                me.case_containers[tc.get('ObjectID')].hide();
+            }
+        });
+    },
+    _revealContainers: function(cbg) {
+        var me = this;
+        var selected_verdicts = cbg.getValue().rb;
+        me.logger.log("show ", selected_verdicts );
+        
+        Ext.Object.each( this.case_containers, function(tc_oid,container){
+            var tc = me.all_cases[tc_oid]
+            var verdict = tc.get('LastVerdict') || "None";
+            var container = me.case_containers[tc.get('ObjectID')];
+            if ( Ext.Array.indexOf(selected_verdicts,verdict) == -1 ) {
+                me.logger.log("Hiding ", tc.get("Name"), " (",tc.get("LastVerdict"),")");
+                container.hide();
+            } else {
+                container.show();
+            }
         });
     },
     _makeTestCaseResult: function(test_case,verdict,steps){
-        
         this.logger.log("_makeTestCaseResult");
         var me = this;
         this.logger.log("_makeTestCaseResult");
