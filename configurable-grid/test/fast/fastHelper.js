@@ -9,14 +9,18 @@ var shiftDayBeginningToEnd = function(day) {
     return Rally.util.DateTime.add(Rally.util.DateTime.add(Rally.util.DateTime.add(day,'hour',23), 'minute',59),'second',59);
 };
 
-Ext.define('mockStory',{
+Ext.define('mockDefect',{
     extend: 'Ext.data.Model',
     fields: [
         {name:'ObjectID', type: 'int'},
+        {name:'FormattedID',type:'string'},
         {name:'Name',type:'string'},
         {name:'PlanEstimate',type:'int'},
         {name:'id',type:'int',convert:useObjectID},
-        {name:'ScheduleState',type:'string',defaultValue:'Defined'}
+        {name:'ScheduleState',type:'string',defaultValue:'Defined'},
+        {name:'_ref',type:'string'},
+        {name:'Notes',type:'string'},
+        {name:'Severity',type:'string'}
     ]
 });
 
