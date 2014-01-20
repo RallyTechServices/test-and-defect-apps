@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Jan 15 2014 17:43:35 GMT-0800 (PST) -->
+    <!--  Build Date: Mon Jan 20 2014 10:05:50 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Jan 15 2014 17:43:35 GMT-0800 (PST)";
-        var CHECKSUM = 45650379329;
+        var APP_BUILD_DATE = "Mon Jan 20 2014 10:05:50 GMT-0800 (PST)";
+        var CHECKSUM = 46418917818;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -550,6 +550,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
 Ext.define('Rally.technicalservices.TestCaseChooser',{
     extend:'Rally.ui.dialog.Dialog',
     alias:'widget.tstestcasechooser',
+    logger: new Rally.technicalservices.Logger(),
     config: {
         title:'Choose Parents of Test Cases',
         width: 300,
@@ -654,6 +655,7 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
             success: function(records_by_type){
                 var records = [];
                 Ext.Array.each(records_by_type, function(records_for_type){
+                    me.logger.log("Found ",records_for_type.length);
                     records = Ext.Array.push(records,records_for_type);
                 });
                 me._addGrid(records);
@@ -662,10 +664,14 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
     },
     _getItems: function(model,filter) {
         var fetch = ['ObjectID','Name','FormattedID','TestCases'];
+        this.logger.log(model,filter.toString());
         var deferred = Ext.create('Deft.Deferred');
+        if ( model == "TestFolder" ) {
+            filter = [{property:'ObjectID',operator:'>',value:1}];
+        }
         Ext.create('Rally.data.wsapi.Store',{
             model:model,
-            filter: filter,
+            filters: filter,
             fetch: fetch,
             autoLoad: true,
             listeners: {

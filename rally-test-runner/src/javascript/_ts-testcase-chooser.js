@@ -1,6 +1,7 @@
 Ext.define('Rally.technicalservices.TestCaseChooser',{
     extend:'Rally.ui.dialog.Dialog',
     alias:'widget.tstestcasechooser',
+    logger: new Rally.technicalservices.Logger(),
     config: {
         title:'Choose Parents of Test Cases',
         width: 300,
@@ -105,6 +106,7 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
             success: function(records_by_type){
                 var records = [];
                 Ext.Array.each(records_by_type, function(records_for_type){
+                    me.logger.log("Found ",records_for_type.length);
                     records = Ext.Array.push(records,records_for_type);
                 });
                 me._addGrid(records);
@@ -113,10 +115,14 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
     },
     _getItems: function(model,filter) {
         var fetch = ['ObjectID','Name','FormattedID','TestCases'];
+        this.logger.log(model,filter.toString());
         var deferred = Ext.create('Deft.Deferred');
+        if ( model == "TestFolder" ) {
+            filter = [{property:'ObjectID',operator:'>',value:1}];
+        }
         Ext.create('Rally.data.wsapi.Store',{
             model:model,
-            filter: filter,
+            filters: filter,
             fetch: fetch,
             autoLoad: true,
             listeners: {
