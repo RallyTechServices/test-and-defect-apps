@@ -42,6 +42,7 @@ Ext.define('CustomApp', {
                     listeners: {
                         scope: this,
                         selectionMade: function(dialog, parents) {
+                            this._setAllChecked();
                             this._makeParentBoxes(parents);
                         }
                     }
@@ -327,5 +328,8 @@ Ext.define('CustomApp', {
                 });
             }
         });
+    },
+    _setAllChecked: function() {
+        this.down('#verdict_checks').setValue({rb:true});
     }
 });
