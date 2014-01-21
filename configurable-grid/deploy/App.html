@@ -3,11 +3,11 @@
 <head>
     <title>Configurable Grid with Dependencies</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Jan 19 2014 20:04:19 GMT-0800 (PST) -->
+    <!--  Build Date: Tue Jan 21 2014 09:14:24 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Sun Jan 19 2014 20:04:19 GMT-0800 (PST)";
-        var CHECKSUM = 45568731140;
+        var APP_BUILD_DATE = "Tue Jan 21 2014 09:14:24 GMT-0800 (PST)";
+        var CHECKSUM = 46317658379;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -74,7 +74,7 @@ Ext.define('Rally.technicalservices.InfoLink',{
      */
      title: "Information",
     
-    renderTpl: "<div id='{id}-infolinkWrap' class='tsinfolink'>TS</div>",
+    renderTpl: "<div id='{id}-infolinkWrap' class='tsinfolink'></div>",
 
     initComponent: function() {
         this.callParent(arguments);
@@ -732,8 +732,13 @@ Ext.define('CustomApp', {
         var display_text = "";
         
         if ( oids.length > 0 ) { 
-            display_text = "<span id='links_" + oid + "'></span>";
-                        
+            // make space for the items to go after we grab them
+            display_text = "<span id='links_" + oid + "'>";
+            for(var i=0;i<oids.length;i++) {
+                display_text += "<span id='" + oid + "_" + oids[i] + "'></span><br/>";
+            }
+            display_text += "</span>";
+            
             Rally.data.ModelFactory.getModel({
                 type: 'Defect',
                 success: function(model) {
@@ -747,7 +752,8 @@ Ext.define('CustomApp', {
                                 if(operation.wasSuccessful()) {
                                     var fid = result.get('FormattedID');
                                     var state = result.get('State');
-                                    var spanner = Ext.dom.Query.select('#links_' + oid);
+                                    var spanner_id = oid + "_" + linked_oid;
+                                    var spanner = Ext.dom.Query.select('#' + spanner_id);
                                     if ( spanner ) {
                                         var existing_text = spanner[0].innerHTML;
                                         var inside_text = "";

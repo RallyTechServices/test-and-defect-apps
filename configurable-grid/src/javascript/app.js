@@ -251,8 +251,13 @@ Ext.define('CustomApp', {
         var display_text = "";
         
         if ( oids.length > 0 ) { 
-            display_text = "<span id='links_" + oid + "'></span>";
-                        
+            // make space for the items to go after we grab them
+            display_text = "<span id='links_" + oid + "'>";
+            for(var i=0;i<oids.length;i++) {
+                display_text += "<span id='" + oid + "_" + oids[i] + "'></span><br/>";
+            }
+            display_text += "</span>";
+            
             Rally.data.ModelFactory.getModel({
                 type: 'Defect',
                 success: function(model) {
@@ -266,7 +271,8 @@ Ext.define('CustomApp', {
                                 if(operation.wasSuccessful()) {
                                     var fid = result.get('FormattedID');
                                     var state = result.get('State');
-                                    var spanner = Ext.dom.Query.select('#links_' + oid);
+                                    var spanner_id = oid + "_" + linked_oid;
+                                    var spanner = Ext.dom.Query.select('#' + spanner_id);
                                     if ( spanner ) {
                                         var existing_text = spanner[0].innerHTML;
                                         var inside_text = "";
