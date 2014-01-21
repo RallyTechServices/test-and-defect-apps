@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Jan 20 2014 10:05:50 GMT-0800 (PST) -->
+    <!--  Build Date: Tue Jan 21 2014 11:34:39 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Mon Jan 20 2014 10:05:50 GMT-0800 (PST)";
-        var CHECKSUM = 46418917818;
+        var APP_BUILD_DATE = "Tue Jan 21 2014 11:34:39 GMT-0800 (PST)";
+        var CHECKSUM = 49297442333;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -725,7 +725,6 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
-    case_verdicts: ['None',"Blocked", "Error", "Fail", "Inconclusive", "Pass"],
     case_containers: {},
     all_cases: {},
     items: [
@@ -741,8 +740,17 @@ Ext.define('CustomApp', {
         {xtype:'tsinfolink'}
     ],
     launch: function() {
-        this._addSettingsButton();
-        this._addCheckboxes();
+        this._getCaseVerdicts().then({
+            scope: this,
+            success: function(verdicts) {
+                this._addSettingsButton();
+                this._addCheckboxes(verdicts);
+            },
+            failure: function(error) {
+                me.down('#message_box').update(error);
+            }
+        });
+
     },
     _addSettingsButton: function() {
         this.logger.log("_addSettingsButton");
@@ -765,10 +773,33 @@ Ext.define('CustomApp', {
             } 
         });
     },
-    _addCheckboxes: function() {
+    _getCaseVerdicts: function() {
+        var deferred = Ext.create('Deft.Deferred');
+        this.logger.log("_getCaseVerdicts");
+        
+        Rally.data.ModelFactory.getModel({
+            type: 'TestCase',
+            scope: this,
+            success: function(model) {
+                this.logger.log("got model");
+                 model.getField('LastVerdict').getAllowedValueStore().load({
+                    callback: function(records, operation, success) {
+                        var verdicts = ["None"];
+                        Ext.Array.each(records, function(allowedValue) {
+                            //each record is an instance of the AllowedAttributeValue model 
+                            verdicts.push(allowedValue.get('StringValue'));
+                        });
+                        deferred.resolve(verdicts);
+                    }
+                });
+            }
+        });
+        return deferred.promise;
+    },
+    _addCheckboxes: function(verdicts) {
         var me = this;
         var boxes = [];
-        Ext.Array.each(this.case_verdicts, function(verdict){
+        Ext.Array.each(verdicts, function(verdict){
             boxes.push({
                 boxLabel: verdict, 
                 name: 'rb', 

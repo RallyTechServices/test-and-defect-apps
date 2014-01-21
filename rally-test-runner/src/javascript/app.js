@@ -2,7 +2,6 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     logger: new Rally.technicalservices.Logger(),
-    case_verdicts: ['None',"Blocked", "Error", "Fail", "Inconclusive", "Pass"],
     case_containers: {},
     all_cases: {},
     items: [
@@ -18,8 +17,17 @@ Ext.define('CustomApp', {
         {xtype:'tsinfolink'}
     ],
     launch: function() {
-        this._addSettingsButton();
-        this._addCheckboxes();
+        this._getCaseVerdicts().then({
+            scope: this,
+            success: function(verdicts) {
+                this._addSettingsButton();
+                this._addCheckboxes(verdicts);
+            },
+            failure: function(error) {
+                me.down('#message_box').update(error);
+            }
+        });
+
     },
     _addSettingsButton: function() {
         this.logger.log("_addSettingsButton");
@@ -42,10 +50,33 @@ Ext.define('CustomApp', {
             } 
         });
     },
-    _addCheckboxes: function() {
+    _getCaseVerdicts: function() {
+        var deferred = Ext.create('Deft.Deferred');
+        this.logger.log("_getCaseVerdicts");
+        
+        Rally.data.ModelFactory.getModel({
+            type: 'TestCase',
+            scope: this,
+            success: function(model) {
+                this.logger.log("got model");
+                 model.getField('LastVerdict').getAllowedValueStore().load({
+                    callback: function(records, operation, success) {
+                        var verdicts = ["None"];
+                        Ext.Array.each(records, function(allowedValue) {
+                            //each record is an instance of the AllowedAttributeValue model 
+                            verdicts.push(allowedValue.get('StringValue'));
+                        });
+                        deferred.resolve(verdicts);
+                    }
+                });
+            }
+        });
+        return deferred.promise;
+    },
+    _addCheckboxes: function(verdicts) {
         var me = this;
         var boxes = [];
-        Ext.Array.each(this.case_verdicts, function(verdict){
+        Ext.Array.each(verdicts, function(verdict){
             boxes.push({
                 boxLabel: verdict, 
                 name: 'rb', 
