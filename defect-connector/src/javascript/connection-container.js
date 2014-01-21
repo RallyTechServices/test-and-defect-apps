@@ -98,9 +98,9 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
             storeConfig: {
                 context: { project: null },
                 filters: [
-                    { property:'FormattedID', operator:'!=', value: this.record.get('FormattedID')},
+                    { property:'FormattedID', operator:'!=', value: this.record.get('FormattedID')}/*,
                     {property:"State",operator:"!=",value:"Fixed"},
-                    {property:"State",operator:"!=",value:"Closed"}
+                    {property:"State",operator:"!=",value:"Closed"}*/
                 ],
                 fetch: ['FormattedID','Name',this.connector_field,'Severity']
             },

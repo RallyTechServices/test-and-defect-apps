@@ -3,11 +3,11 @@
 <head>
     <title>Defect Connector</title>
     <!--  (c) 2013-2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Jan 19 2014 17:08:04 GMT-0800 (PST) -->
+    <!--  Build Date: Tue Jan 21 2014 09:50:23 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Sun Jan 19 2014 17:08:04 GMT-0800 (PST)";
-        var CHECKSUM = 11532405809;
+        var APP_BUILD_DATE = "Tue Jan 21 2014 09:50:23 GMT-0800 (PST)";
+        var CHECKSUM = 11540582025;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -206,10 +206,10 @@ Ext.define('CustomApp', {
             title: 'Choose Defect',
             storeConfig: {
                 context: { project: null },
-                filters: [
+                /*filters: [
                     {property:"State",operator:"!=",value:"Fixed"},
                     {property:"State",operator:"!=",value:"Closed"}
-                ],
+                ],*/
                 fetch: ['FormattedID','Name',me.connector_field,'Severity']
             },
             listeners: {
@@ -336,9 +336,9 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
             storeConfig: {
                 context: { project: null },
                 filters: [
-                    { property:'FormattedID', operator:'!=', value: this.record.get('FormattedID')},
+                    { property:'FormattedID', operator:'!=', value: this.record.get('FormattedID')}/*,
                     {property:"State",operator:"!=",value:"Fixed"},
-                    {property:"State",operator:"!=",value:"Closed"}
+                    {property:"State",operator:"!=",value:"Closed"}*/
                 ],
                 fetch: ['FormattedID','Name',this.connector_field,'Severity']
             },
