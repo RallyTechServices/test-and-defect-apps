@@ -65,6 +65,12 @@ Ext.define('CustomApp', {
             artifactTypes:['defect'],
             autoShow: true,
             title: 'Choose Defect',
+            filterableFields:[
+                {displayName: 'Formatted ID', attributeName: 'FormattedID'}, 
+                {displayName: 'Name', attributeName: 'Name'},
+                {displayName: 'State', attributeName: 'State'},
+                {displayName: 'Schedule State', attributeName: 'ScheduleState'}
+            ],
             storeConfig: {
                 context: { project: null },
                 /*filters: [

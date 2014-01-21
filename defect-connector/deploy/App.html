@@ -3,11 +3,11 @@
 <head>
     <title>Defect Connector</title>
     <!--  (c) 2013-2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jan 21 2014 09:50:23 GMT-0800 (PST) -->
+    <!--  Build Date: Tue Jan 21 2014 09:55:32 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Jan 21 2014 09:50:23 GMT-0800 (PST)";
-        var CHECKSUM = 11540582025;
+        var APP_BUILD_DATE = "Tue Jan 21 2014 09:55:32 GMT-0800 (PST)";
+        var CHECKSUM = 12406385083;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -204,6 +204,12 @@ Ext.define('CustomApp', {
             artifactTypes:['defect'],
             autoShow: true,
             title: 'Choose Defect',
+            filterableFields:[
+                {displayName: 'Formatted ID', attributeName: 'FormattedID'}, 
+                {displayName: 'Name', attributeName: 'Name'},
+                {displayName: 'State', attributeName: 'State'},
+                {displayName: 'Schedule State', attributeName: 'ScheduleState'}
+            ],
             storeConfig: {
                 context: { project: null },
                 /*filters: [
@@ -333,6 +339,12 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
             artifactTypes:['defect'],
             autoShow: true,
             title: 'Choose Defect',
+            filterableFields:[
+                {displayName: 'Formatted ID', attributeName: 'FormattedID'}, 
+                {displayName: 'Name', attributeName: 'Name'},
+                {displayName: 'State', attributeName: 'State'},
+                {displayName: 'Schedule State', attributeName: 'ScheduleState'}
+            ],
             storeConfig: {
                 context: { project: null },
                 filters: [
