@@ -3,11 +3,11 @@
 <head>
     <title>Defect Connector</title>
     <!--  (c) 2013-2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jan 21 2014 09:55:32 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Jan 30 2014 20:48:20 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Jan 21 2014 09:55:32 GMT-0800 (PST)";
-        var CHECKSUM = 12406385083;
+        var APP_BUILD_DATE = "Thu Jan 30 2014 20:48:20 GMT-0800 (PST)";
+        var CHECKSUM = 12748529990;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -369,11 +369,18 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
     },
     _updateRecord: function(record,new_html,refresh) {
         var me = this;
+        //alert(new_html);
         record.set(this.connector_field,new_html);
         record.save({
             callback: function(result,operation){
                 if (!operation.wasSuccessful()) {
-                    alert("Problem. " + operation.getError());
+                    var message = "Problem. ";
+                    if ( typeof(operation.getError()) == 'string' ) {
+                        message += "Problem. ";
+                    } else {
+                        message += Ext.JSON.encode(operation.getError());
+                    }
+                    //alert(message);
                 } else {
                     if ( refresh ) {
                         me. _showConnections();

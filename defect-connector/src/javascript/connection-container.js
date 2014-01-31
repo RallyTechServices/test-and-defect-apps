@@ -125,11 +125,18 @@ Ext.define('Rally.technicalservices.ui.ConnectionContainer',{
     },
     _updateRecord: function(record,new_html,refresh) {
         var me = this;
+        //alert(new_html);
         record.set(this.connector_field,new_html);
         record.save({
             callback: function(result,operation){
                 if (!operation.wasSuccessful()) {
-                    alert("Problem. " + operation.getError());
+                    var message = "Problem. ";
+                    if ( typeof(operation.getError()) == 'string' ) {
+                        message += "Problem. ";
+                    } else {
+                        message += Ext.JSON.encode(operation.getError());
+                    }
+                    //alert(message);
                 } else {
                     if ( refresh ) {
                         me. _showConnections();
