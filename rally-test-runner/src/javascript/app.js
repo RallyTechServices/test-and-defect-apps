@@ -254,7 +254,7 @@ Ext.define('CustomApp', {
         var build = this.down('#build_box').getValue();
         if ( !build ) { build = 'unknown'; }
         
-        var step_array = ["Step|Expected|Actual|Verdict|Tester|Timestamp"];
+        var step_array = ["Step|Verdict|Expected|Actual|Tester|Timestamp"];
         Ext.Array.each(steps, function(step){
             var display_index = step.get('StepIndex') + 1;
             
