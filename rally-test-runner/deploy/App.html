@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Jan 31 2014 13:42:27 GMT-0800 (PST) -->
+    <!--  Build Date: Fri Jan 31 2014 13:49:17 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Fri Jan 31 2014 13:42:27 GMT-0800 (PST)";
-        var CHECKSUM = 51969741823;
+        var APP_BUILD_DATE = "Fri Jan 31 2014 13:49:17 GMT-0800 (PST)";
+        var CHECKSUM = 52174489744;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -481,7 +481,9 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                     itemId:'verdict_combo',
                     displayField:'text',
                     valueField:'dataIndex',
-                    store: me.step_verdict_store
+                    store: me.step_verdict_store,
+                    fieldLabel: 'Verdict',
+                    labelWidth: 45
                 });
                 this.down('#action_box').add({
                     xtype: 'rallybutton',
@@ -499,7 +501,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         this.down('#action_box').add({
             xtype: 'rallybutton',
             itemId: 'save_verdict_button',
-            text: 'Set Test Case Verdict',
+            text: 'Set Test Case to Verdict',
             disabled: false,
             scope: this,
             handler: function() {

@@ -147,7 +147,9 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                     itemId:'verdict_combo',
                     displayField:'text',
                     valueField:'dataIndex',
-                    store: me.step_verdict_store
+                    store: me.step_verdict_store,
+                    fieldLabel: 'Verdict',
+                    labelWidth: 45
                 });
                 this.down('#action_box').add({
                     xtype: 'rallybutton',
@@ -165,7 +167,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         this.down('#action_box').add({
             xtype: 'rallybutton',
             itemId: 'save_verdict_button',
-            text: 'Set Test Case Verdict',
+            text: 'Set Test Case to Verdict',
             disabled: false,
             scope: this,
             handler: function() {
