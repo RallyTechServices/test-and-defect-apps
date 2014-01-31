@@ -20,6 +20,8 @@ Ext.define('CustomApp', {
         this._getCaseVerdicts().then({
             scope: this,
             success: function(verdicts) {
+                this.logger.log("Verdicts:",verdicts);
+                this.verdicts = verdicts;
                 this._addSettingsButton();
                 this._addCheckboxes(verdicts);
             },
@@ -191,6 +193,7 @@ Ext.define('CustomApp', {
                 margin: 10,
                 test_case: tc,
                 tester: me.getContext().getUser(),
+                step_verdicts: me.verdicts,
                 listeners: {
                     scope: me,
                     verdictChosen: function(table, test_case, verdict, steps) {

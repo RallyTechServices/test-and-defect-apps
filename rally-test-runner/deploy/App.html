@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Jan 21 2014 12:08:59 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Jan 30 2014 19:03:19 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Tue Jan 21 2014 12:08:59 GMT-0800 (PST)";
-        var CHECKSUM = 49714184115;
+        var APP_BUILD_DATE = "Thu Jan 30 2014 19:03:19 GMT-0800 (PST)";
+        var CHECKSUM = 50096190708;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -743,6 +743,8 @@ Ext.define('CustomApp', {
         this._getCaseVerdicts().then({
             scope: this,
             success: function(verdicts) {
+                this.logger.log("Verdicts:",verdicts);
+                this.verdicts = verdicts;
                 this._addSettingsButton();
                 this._addCheckboxes(verdicts);
             },
@@ -914,6 +916,7 @@ Ext.define('CustomApp', {
                 margin: 10,
                 test_case: tc,
                 tester: me.getContext().getUser(),
+                step_verdicts: me.verdicts,
                 listeners: {
                     scope: me,
                     verdictChosen: function(table, test_case, verdict, steps) {
