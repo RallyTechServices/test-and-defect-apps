@@ -105,7 +105,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             } else {
                 this.logger.log("    Found steps: ", steps.length);
                 Ext.Array.each(steps,function(step){
-                    step.set('Verdict','None')
+                    step.set('Verdict','None'),
+                    step.set('ActualResult','')
                 });
                           
                 this.step_store = Ext.create('Rally.data.custom.Store',{
@@ -141,6 +142,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
                         { dataIndex:'Input', text:'Input', flex: 1},
                         { dataIndex:'ExpectedResult',text:'Expected Result', flex: 1},
+                        { dataIndex:'ActualResult',text:'Actual Result', editor: 'rallytextfield', flex: 1},
                         { dataIndex:'Verdict',text:'Step Verdict', editor: {
                             xtype:'rallycombobox',
                             store:me.step_verdict_store,
@@ -180,7 +182,12 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             scope: this,
             handler: function() {
                 //this._disableAllButtons();
-                this.fireEvent('verdictChosen',this,this.test_case,me.down('#verdict_combo').getValue(),this._getAllSteps());
+                var value = me.down('#verdict_combo').getValue();
+                if ( value === "None" ) {
+                    alert("Choose a verdict other than 'None'");
+                } else {
+                    this.fireEvent('verdictChosen',this,this.test_case,value,this._getAllSteps());
+                }
             } 
         });
 //        this.down('#action_box').add({

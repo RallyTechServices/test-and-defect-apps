@@ -205,7 +205,7 @@ Ext.define('CustomApp', {
                         this.logger.log("Step Changed",step,modified_field_names);
                         if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
                             var verdict = step.get('Verdict');
-                            if ( verdict === "Not Run" ) {
+                            if ( verdict === "None" ) {
                                 step.set('Tester',null);
                                 step.set('TestDate',null);
                             } else {
@@ -254,13 +254,15 @@ Ext.define('CustomApp', {
         var build = this.down('#build_box').getValue();
         if ( !build ) { build = 'unknown'; }
         
-        var step_array = ["Step|Verdict|Tester|Timestamp"];
+        var step_array = ["Step|Expected|Actual|Verdict|Tester|Timestamp"];
         Ext.Array.each(steps, function(step){
             var display_index = step.get('StepIndex') + 1;
             
             step_array.push(
                 display_index + "|" +
                 step.get('Verdict') + "|" + 
+                step.get('ExpectedResult') + "|" +
+                step.get('ActualResult') + "|" + 
                 step.get('Tester') + "|" + 
                 Rally.util.DateTime.toIsoString(step.get('TestDate'))
             );
