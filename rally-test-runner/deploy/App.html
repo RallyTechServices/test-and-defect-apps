@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Jan 30 2014 19:33:50 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Jan 30 2014 19:45:46 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Jan 30 2014 19:33:50 GMT-0800 (PST)";
-        var CHECKSUM = 51779552435;
+        var APP_BUILD_DATE = "Thu Jan 30 2014 19:45:46 GMT-0800 (PST)";
+        var CHECKSUM = 51919222761;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -891,6 +891,7 @@ Ext.define('CustomApp', {
             filters:filters,
             autoLoad: true,
             fetch: ['StepIndex','Input', 'ExpectedResult', 'TestCase', 'ObjectID'],
+            sorters: [{property:'StepIndex'}],
             listeners: {
                 scope: this,
                 load: function(store,steps) {

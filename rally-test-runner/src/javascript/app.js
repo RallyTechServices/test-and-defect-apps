@@ -164,6 +164,7 @@ Ext.define('CustomApp', {
             filters:filters,
             autoLoad: true,
             fetch: ['StepIndex','Input', 'ExpectedResult', 'TestCase', 'ObjectID'],
+            sorters: [{property:'StepIndex'}],
             listeners: {
                 scope: this,
                 load: function(store,steps) {
