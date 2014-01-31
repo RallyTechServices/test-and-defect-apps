@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Jan 31 2014 13:49:17 GMT-0800 (PST) -->
+    <!--  Build Date: Fri Jan 31 2014 14:06:34 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Fri Jan 31 2014 13:49:17 GMT-0800 (PST)";
-        var CHECKSUM = 52174489744;
+        var APP_BUILD_DATE = "Fri Jan 31 2014 14:06:34 GMT-0800 (PST)";
+        var CHECKSUM = 52976109109;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -408,11 +408,19 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     },
     _setSummary: function(test_case) {
         var verdict = test_case.get('LastVerdict') || "None";
+       
+        var verdict_date = test_case.get('LastRun');
+        if ( verdict_date ) {
+            verdict = verdict + "/" + verdict_date;
+        }
         this.down('#summary_box').removeAll();
         this.down('#summary_box').add({
             xtype:'container',
             cls: 'title',
-            html: test_case.get('FormattedID') + ": " + test_case.get('Name') + " (" + verdict + ")"
+            html: Rally.nav.DetailLink.getLink({
+                record: test_case.getData(),
+                subPage: 'testcaseresults',
+                text: test_case.get('FormattedID') }) + ": " + test_case.get('Name') + " (" + verdict + ")"
         });
     },
     _makeGrid: function() {

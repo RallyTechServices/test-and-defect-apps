@@ -74,11 +74,19 @@ Ext.define('Rally.technicalservices.TestStepTable',{
     },
     _setSummary: function(test_case) {
         var verdict = test_case.get('LastVerdict') || "None";
+       
+        var verdict_date = test_case.get('LastRun');
+        if ( verdict_date ) {
+            verdict = verdict + "/" + verdict_date;
+        }
         this.down('#summary_box').removeAll();
         this.down('#summary_box').add({
             xtype:'container',
             cls: 'title',
-            html: test_case.get('FormattedID') + ": " + test_case.get('Name') + " (" + verdict + ")"
+            html: Rally.nav.DetailLink.getLink({
+                record: test_case.getData(),
+                subPage: 'testcaseresults',
+                text: test_case.get('FormattedID') }) + ": " + test_case.get('Name') + " (" + verdict + ")"
         });
     },
     _makeGrid: function() {
