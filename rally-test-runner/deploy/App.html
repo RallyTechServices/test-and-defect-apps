@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Thu Jan 30 2014 19:03:19 GMT-0800 (PST) -->
+    <!--  Build Date: Thu Jan 30 2014 19:33:50 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Thu Jan 30 2014 19:03:19 GMT-0800 (PST)";
-        var CHECKSUM = 50096190708;
+        var APP_BUILD_DATE = "Thu Jan 30 2014 19:33:50 GMT-0800 (PST)";
+        var CHECKSUM = 51779552435;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -391,8 +391,11 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             'stepUpdated'
         );
         this._defineStepVerdictStore();
-        this._setSummary();
+        this._setSummary(this.test_case);
         this._makeGrid();
+    },
+    refreshDisplay: function(test_case) {
+        this._setSummary(test_case);
     },
     _defineStepVerdictStore: function() {
         var data = [];
@@ -403,12 +406,13 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             data:data
         });
     },
-    _setSummary: function() {
-        var verdict = this.test_case.get('LastVerdict') || "None";
+    _setSummary: function(test_case) {
+        var verdict = test_case.get('LastVerdict') || "None";
+        this.down('#summary_box').removeAll();
         this.down('#summary_box').add({
             xtype:'container',
             cls: 'title',
-            html: this.test_case.get('FormattedID') + ": " + this.test_case.get('Name') + " (" + verdict + ")"
+            html: test_case.get('FormattedID') + ": " + test_case.get('Name') + " (" + verdict + ")"
         });
     },
     _makeGrid: function() {
@@ -1007,6 +1011,17 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
+                        Rally.data.ModelFactory.getModel({
+                            type: 'TestCase',
+                            success: function(tcmodel){
+                                tcmodel.load(test_case.get('ObjectID'),{
+                                    callback:function(tc,operation){
+                                        me.case_containers[test_case.get('ObjectID')].refreshDisplay(tc);
+                                    }
+                                });
+                            },
+                            scope: this
+                        });
                         if ( verdict === "Fail" ) {
                             me._askToCreateADefect(result,test_case,notes);
                         } else {

@@ -284,6 +284,17 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
+                        Rally.data.ModelFactory.getModel({
+                            type: 'TestCase',
+                            success: function(tcmodel){
+                                tcmodel.load(test_case.get('ObjectID'),{
+                                    callback:function(tc,operation){
+                                        me.case_containers[test_case.get('ObjectID')].refreshDisplay(tc);
+                                    }
+                                });
+                            },
+                            scope: this
+                        });
                         if ( verdict === "Fail" ) {
                             me._askToCreateADefect(result,test_case,notes);
                         } else {

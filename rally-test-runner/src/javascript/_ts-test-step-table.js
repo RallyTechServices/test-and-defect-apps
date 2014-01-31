@@ -57,8 +57,11 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             'stepUpdated'
         );
         this._defineStepVerdictStore();
-        this._setSummary();
+        this._setSummary(this.test_case);
         this._makeGrid();
+    },
+    refreshDisplay: function(test_case) {
+        this._setSummary(test_case);
     },
     _defineStepVerdictStore: function() {
         var data = [];
@@ -69,12 +72,13 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             data:data
         });
     },
-    _setSummary: function() {
-        var verdict = this.test_case.get('LastVerdict') || "None";
+    _setSummary: function(test_case) {
+        var verdict = test_case.get('LastVerdict') || "None";
+        this.down('#summary_box').removeAll();
         this.down('#summary_box').add({
             xtype:'container',
             cls: 'title',
-            html: this.test_case.get('FormattedID') + ": " + this.test_case.get('Name') + " (" + verdict + ")"
+            html: test_case.get('FormattedID') + ": " + test_case.get('Name') + " (" + verdict + ")"
         });
     },
     _makeGrid: function() {
