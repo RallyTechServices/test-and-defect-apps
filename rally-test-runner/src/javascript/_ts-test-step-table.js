@@ -19,7 +19,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
          * 
          * [ @String ] step_vericts  An array of valid verdicts for each step 
          */
-        step_verdicts: ['Not Run','Pass','Fail'],
+        step_verdicts: ['None','Pass','Fail'],
         step_verdict_store: null,
         tester: null
     },
@@ -97,7 +97,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             } else {
                 this.logger.log("    Found steps: ", steps.length);
                 Ext.Array.each(steps,function(step){
-                    step.set('Verdict','Not Run')
+                    step.set('Verdict','None')
                 });
                           
                 this.step_store = Ext.create('Rally.data.custom.Store',{
@@ -143,23 +143,20 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                 });
 
                 this.down('#action_box').add({
-                    xtype: 'rallybutton',
-                    itemId: 'reset_button',
-                    text: 'All Steps Not Run',
-                    disabled: false,
-                    scope: this,
-                    handler: function() {
-                        this.setAllSteps('Not Run');
-                    } 
-                }); 
+                    xtype:'rallycombobox',
+                    itemId:'verdict_combo',
+                    displayField:'text',
+                    valueField:'dataIndex',
+                    store: me.step_verdict_store
+                });
                 this.down('#action_box').add({
                     xtype: 'rallybutton',
                     itemId: 'pass_button',
-                    text: 'All Steps Pass',
+                    text: 'Set All Steps to Verdict',
                     disabled: false,
                     scope: this,
                     handler: function() {
-                        this.setAllSteps('Pass');
+                        this.setAllSteps(me.down('#verdict_combo').getValue());
                     } 
                 });
                 
@@ -167,26 +164,26 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         }
         this.down('#action_box').add({
             xtype: 'rallybutton',
-            itemId: 'save_pass_button',
-            text: 'Pass This Test',
+            itemId: 'save_verdict_button',
+            text: 'Set Test Case Verdict',
             disabled: false,
             scope: this,
             handler: function() {
                 //this._disableAllButtons();
-                this.fireEvent('verdictChosen',this,this.test_case,'Pass',this._getAllSteps());
+                this.fireEvent('verdictChosen',this,this.test_case,me.down('#verdict_combo').getValue(),this._getAllSteps());
             } 
         });
-        this.down('#action_box').add({
-            xtype: 'rallybutton',
-            itemId: 'save_fail_button',
-            text: 'Fail This Test',
-            disabled: false,
-            scope: this,
-            handler: function() {
-                //this._disableAllButtons();
-                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
-            } 
-        });
+//        this.down('#action_box').add({
+//            xtype: 'rallybutton',
+//            itemId: 'save_fail_button',
+//            text: 'Fail This Test',
+//            disabled: false,
+//            scope: this,
+//            handler: function() {
+//                //this._disableAllButtons();
+//                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
+//            } 
+//        });
     },
     _disableAllButtons: function() {
         var buttons = this.query('rallybutton');
