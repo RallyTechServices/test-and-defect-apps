@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Fri Jan 31 2014 14:34:32 GMT-0800 (PST) -->
+    <!--  Build Date: Sun Feb 02 2014 16:11:47 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Fri Jan 31 2014 14:34:32 GMT-0800 (PST)";
-        var CHECKSUM = 54200384131;
+        var APP_BUILD_DATE = "Sun Feb 02 2014 16:11:47 GMT-0800 (PST)";
+        var CHECKSUM = 55545241589;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -692,6 +692,10 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
             filters: filter,
             fetch: fetch,
             autoLoad: true,
+            context: {
+                projectScopeDown: false,
+                projectScopeUp: false
+            },
             listeners: {
                 scope: this,
                 load: function(store,items){
@@ -999,13 +1003,18 @@ Ext.define('CustomApp', {
         Ext.Array.each(steps, function(step){
             var display_index = step.get('StepIndex') + 1;
             
+            var tester = step.get('Tester') || "N/A";
+            var test_date = step.get('TestDate') || "N/A";
+            if ( test_date !== "N/A" ) {
+                test_date = Rally.util.DateTime.toIsoString(test_date)
+            }
             step_array.push(
                 display_index + "|" +
                 step.get('Verdict') + "|" + 
                 step.get('ExpectedResult') + "|" +
                 step.get('ActualResult') + "|" + 
-                step.get('Tester') + "|" + 
-                Rally.util.DateTime.toIsoString(step.get('TestDate'))
+                tester + "|" + 
+                test_date
             );
         });
         
@@ -1028,6 +1037,7 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
+                        me.logger.log("SAVED TCR:",result.get("ObjectID"));
                         Rally.data.ModelFactory.getModel({
                             type: 'TestCase',
                             success: function(tcmodel){
@@ -1064,6 +1074,7 @@ Ext.define('CustomApp', {
         })
     },
     _createADefect: function(tcr,test_case,notes){
+        var me = this;
         var work_product = null;
         if ( test_case.get('WorkProduct') && test_case.get('WorkProduct')._type == "HierarchicalRequirement" ) {
             work_product = test_case.get('WorkProduct')._ref;
@@ -1081,6 +1092,7 @@ Ext.define('CustomApp', {
                 
                 defect.save({
                     callback: function(result,operation) {
+                        me.logger.log("CREATED DEFECT: ", result.get("FormattedID"), "/", result.get("ObjectID"));
                         Rally.nav.Manager.edit(result);
                     }
                 });

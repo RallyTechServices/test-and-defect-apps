@@ -125,6 +125,10 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
             filters: filter,
             fetch: fetch,
             autoLoad: true,
+            context: {
+                projectScopeDown: false,
+                projectScopeUp: false
+            },
             listeners: {
                 scope: this,
                 load: function(store,items){

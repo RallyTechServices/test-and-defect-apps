@@ -258,13 +258,18 @@ Ext.define('CustomApp', {
         Ext.Array.each(steps, function(step){
             var display_index = step.get('StepIndex') + 1;
             
+            var tester = step.get('Tester') || "N/A";
+            var test_date = step.get('TestDate') || "N/A";
+            if ( test_date !== "N/A" ) {
+                test_date = Rally.util.DateTime.toIsoString(test_date)
+            }
             step_array.push(
                 display_index + "|" +
                 step.get('Verdict') + "|" + 
                 step.get('ExpectedResult') + "|" +
                 step.get('ActualResult') + "|" + 
-                step.get('Tester') + "|" + 
-                Rally.util.DateTime.toIsoString(step.get('TestDate'))
+                tester + "|" + 
+                test_date
             );
         });
         
@@ -287,6 +292,7 @@ Ext.define('CustomApp', {
                 me.logger.log("Saving TCR");
                 tcr.save({
                     callback: function(result,operation){
+                        me.logger.log("SAVED TCR:",result.get("ObjectID"));
                         Rally.data.ModelFactory.getModel({
                             type: 'TestCase',
                             success: function(tcmodel){
@@ -323,6 +329,7 @@ Ext.define('CustomApp', {
         })
     },
     _createADefect: function(tcr,test_case,notes){
+        var me = this;
         var work_product = null;
         if ( test_case.get('WorkProduct') && test_case.get('WorkProduct')._type == "HierarchicalRequirement" ) {
             work_product = test_case.get('WorkProduct')._ref;
@@ -340,6 +347,7 @@ Ext.define('CustomApp', {
                 
                 defect.save({
                     callback: function(result,operation) {
+                        me.logger.log("CREATED DEFECT: ", result.get("FormattedID"), "/", result.get("ObjectID"));
                         Rally.nav.Manager.edit(result);
                     }
                 });
