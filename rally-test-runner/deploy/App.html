@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Feb 05 2014 19:21:35 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Feb 05 2014 19:25:17 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Feb 05 2014 19:21:35 GMT-0800 (PST)";
-        var CHECKSUM = 55335660827;
+        var APP_BUILD_DATE = "Wed Feb 05 2014 19:25:17 GMT-0800 (PST)";
+        var CHECKSUM = 55459475421;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -789,6 +789,7 @@ Ext.define('CustomApp', {
         parent.getCollection('TestCases').load({
             fetch: ['Name','FormattedID','Steps','WorkProduct','LastVerdict'],
             scope: this,
+            sorters: [{property:'Rank'}],
             callback: function(cases,operation,success){
                 this.logger.log("  _getTestCasesForParent callback", cases.length);
                 this._getTestStepsForCases(container,cases);

@@ -132,6 +132,7 @@ Ext.define('CustomApp', {
         parent.getCollection('TestCases').load({
             fetch: ['Name','FormattedID','Steps','WorkProduct','LastVerdict'],
             scope: this,
+            sorters: [{property:'Rank'}],
             callback: function(cases,operation,success){
                 this.logger.log("  _getTestCasesForParent callback", cases.length);
                 this._getTestStepsForCases(container,cases);
