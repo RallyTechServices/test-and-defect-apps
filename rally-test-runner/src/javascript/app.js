@@ -176,6 +176,7 @@ Ext.define('CustomApp', {
             model:'TestCaseStep',
             filters:filters,
             autoLoad: true,
+            limit: 'Infinity',
             fetch: ['StepIndex','Input', 'ExpectedResult', 'TestCase', 'ObjectID'],
             sorters: [{property:'StepIndex'}],
             listeners: {
@@ -191,7 +192,6 @@ Ext.define('CustomApp', {
                         }
                     });
                     this._displayTestCasesForContainer(container,this._hashToArray(case_hash));
-                    
                 }
             }
         });        
@@ -211,6 +211,8 @@ Ext.define('CustomApp', {
         this._mask("Creating display...");
         
         var me = this;
+        Ext.suspendLayouts();
+        
         Ext.Array.each(cases, function(tc){
             me.logger.log("starting ", tc.get('FormattedID'));
             me.all_cases[tc.get('ObjectID')] = tc;
@@ -251,7 +253,9 @@ Ext.define('CustomApp', {
             me.logger.log("done ", tc.get('FormattedID'));
             me._unmask();
         });
+        Ext.resumeLayouts(true);
         me._unmask();
+        
         me.logger.log("--ready--");
     },
     _revealContainers: function(cbg) {

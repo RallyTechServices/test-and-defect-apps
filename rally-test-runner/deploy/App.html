@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Feb 05 2014 18:21:56 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Feb 05 2014 19:21:35 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Feb 05 2014 18:21:56 GMT-0800 (PST)";
-        var CHECKSUM = 55070863873;
+        var APP_BUILD_DATE = "Wed Feb 05 2014 19:21:35 GMT-0800 (PST)";
+        var CHECKSUM = 55335660827;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -833,6 +833,7 @@ Ext.define('CustomApp', {
             model:'TestCaseStep',
             filters:filters,
             autoLoad: true,
+            limit: 'Infinity',
             fetch: ['StepIndex','Input', 'ExpectedResult', 'TestCase', 'ObjectID'],
             sorters: [{property:'StepIndex'}],
             listeners: {
@@ -848,7 +849,6 @@ Ext.define('CustomApp', {
                         }
                     });
                     this._displayTestCasesForContainer(container,this._hashToArray(case_hash));
-                    
                 }
             }
         });        
@@ -868,6 +868,8 @@ Ext.define('CustomApp', {
         this._mask("Creating display...");
         
         var me = this;
+        Ext.suspendLayouts();
+        
         Ext.Array.each(cases, function(tc){
             me.logger.log("starting ", tc.get('FormattedID'));
             me.all_cases[tc.get('ObjectID')] = tc;
@@ -908,7 +910,9 @@ Ext.define('CustomApp', {
             me.logger.log("done ", tc.get('FormattedID'));
             me._unmask();
         });
+        Ext.resumeLayouts(true);
         me._unmask();
+        
         me.logger.log("--ready--");
     },
     _revealContainers: function(cbg) {
