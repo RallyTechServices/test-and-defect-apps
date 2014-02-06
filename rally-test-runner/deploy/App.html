@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Wed Feb 05 2014 17:13:33 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Feb 05 2014 18:21:56 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Wed Feb 05 2014 17:13:33 GMT-0800 (PST)";
-        var CHECKSUM = 53128724494;
+        var APP_BUILD_DATE = "Wed Feb 05 2014 18:21:56 GMT-0800 (PST)";
+        var CHECKSUM = 55070863873;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -370,14 +370,14 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                 ];
                 
                 var html = "<table>";
-                html += "<tr>";
+                html += "<tr class='ts-grid-header'>";
                 Ext.Array.each(columns,function(column){
-                    html += "<th>" + column.text + "</th>";
+                    html += "<th class='ts-grid-header'>" + column.text + "</th>";
                 });
                 html += "</tr>";
                 
                 Ext.Array.each(steps,function(step){
-                    html += "<tr>";
+                    html += "<tr class='ts-grid-row'>";
                     Ext.Array.each(columns,function(column){
                         var display_value = step.get(column.dataIndex);
                         if ( typeof(column.renderer) === 'function' ) {
@@ -386,7 +386,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         if ( typeof(column.editor) === 'string' ) {
                             display_value = column.editor;
                         }
-                        html += "<td>" + display_value + "</td>";
+                        html += "<td class='ts-grid-cell'>" + display_value + "</td>";
                     });
                     html += "</tr>";
                 });
@@ -1052,6 +1052,30 @@ Ext.define('CustomApp', {
     <style type="text/css">
 
 .app {
+}
+
+th.ts-grid-header{
+    font-family: ProximaNovaSemiBold, Helvetica, Arial;
+    font-size: 10px ;
+    text-transform: uppercase;
+}
+
+tr.ts-grid-header {
+    border-bottom-color: rgb(136, 136, 136);
+    border-bottom-style: solid;
+    border-bottom-width: 1.1111111640930176px;
+}
+
+tr.ts-grid-row {
+    border-bottom-color: rgb(198, 198, 198);
+    border-bottom-style: solid;
+    border-bottom-width: 1.1111111640930176px;
+}
+
+th.ts-grid-header, td.ts-grid-cell {
+    padding-right:15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .title {

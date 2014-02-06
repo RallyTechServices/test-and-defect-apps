@@ -232,14 +232,14 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                 ];
                 
                 var html = "<table>";
-                html += "<tr>";
+                html += "<tr class='ts-grid-header'>";
                 Ext.Array.each(columns,function(column){
-                    html += "<th>" + column.text + "</th>";
+                    html += "<th class='ts-grid-header'>" + column.text + "</th>";
                 });
                 html += "</tr>";
                 
                 Ext.Array.each(steps,function(step){
-                    html += "<tr>";
+                    html += "<tr class='ts-grid-row'>";
                     Ext.Array.each(columns,function(column){
                         var display_value = step.get(column.dataIndex);
                         if ( typeof(column.renderer) === 'function' ) {
@@ -248,7 +248,7 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         if ( typeof(column.editor) === 'string' ) {
                             display_value = column.editor;
                         }
-                        html += "<td>" + display_value + "</td>";
+                        html += "<td class='ts-grid-cell'>" + display_value + "</td>";
                     });
                     html += "</tr>";
                 });

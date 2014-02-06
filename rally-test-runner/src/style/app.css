@@ -1,6 +1,30 @@
 .app {
 }
 
+th.ts-grid-header{
+    font-family: ProximaNovaSemiBold, Helvetica, Arial;
+    font-size: 10px ;
+    text-transform: uppercase;
+}
+
+tr.ts-grid-header {
+    border-bottom-color: rgb(136, 136, 136);
+    border-bottom-style: solid;
+    border-bottom-width: 1.1111111640930176px;
+}
+
+tr.ts-grid-row {
+    border-bottom-color: rgb(198, 198, 198);
+    border-bottom-style: solid;
+    border-bottom-width: 1.1111111640930176px;
+}
+
+th.ts-grid-header, td.ts-grid-cell {
+    padding-right:15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
 .title {
     font-family: ProximaNova, Helvetica, Arial;
     font-size: 18px;
