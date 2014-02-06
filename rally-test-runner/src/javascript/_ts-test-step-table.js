@@ -19,7 +19,6 @@ Ext.define('Rally.technicalservices.TestStepTable',{
          * 
          * [ @String ] step_vericts  An array of valid verdicts for each step 
          */
-        step_verdicts: ['None','Pass','Fail'],
         step_verdict_store: null,
         tester: null
     },
@@ -56,20 +55,52 @@ Ext.define('Rally.technicalservices.TestStepTable',{
              */
             'stepUpdated'
         );
-        this._defineStepVerdictStore();
         this._setSummary(this.test_case);
-        this._makeGrid();
+        this._addButtons();
+        //this._makeGrid();
+        this._makeOldTable();
     },
     refreshDisplay: function(test_case) {
         this._setSummary(test_case);
     },
-    _defineStepVerdictStore: function() {
-        var data = [];
-        Ext.Array.each(this.step_verdicts,function(verdict){
-            data.push({dataIndex:verdict,text:verdict});
+    _addButtons: function() {
+        var me = this;
+        this.down('#action_box').add({
+            xtype:'rallycombobox',
+            itemId:'verdict_combo',
+            displayField:'text',
+            valueField:'dataIndex',
+            store: me.step_verdict_store,
+            value: 'None',
+            fieldLabel: 'Verdict',
+            labelWidth: 45
         });
-        this.step_verdict_store = Ext.create('Rally.data.custom.Store',{
-            data:data
+        this.down('#action_box').add({
+            xtype: 'rallybutton',
+            itemId: 'set_step_button',
+            disabled: true,
+            text: 'Set All Steps to Verdict',
+            disabled: true,
+            scope: this,
+            handler: function() {
+                this.setAllSteps(me.down('#verdict_combo').getValue());
+            } 
+        });
+        this.down('#action_box').add({
+            xtype: 'rallybutton',
+            itemId: 'save_verdict_button',
+            text: 'Set Test Case to Verdict',
+            disabled: true,
+            scope: this,
+            handler: function() {
+                //this._disableAllButtons();
+                var value = me.down('#verdict_combo').getValue();
+                if ( value === "None" ) {
+                    alert("Choose a verdict other than 'None'");
+                } else {
+                    this.fireEvent('verdictChosen',this,this.test_case,value,this._getAllSteps());
+                }
+            } 
         });
     },
     _setSummary: function(test_case) {
@@ -95,8 +126,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         var me = this;
         
         if ( this.test_case ) {
+            this.down('#save_verdict_button').setDisabled(false);
             var steps = this.test_case.get("_steps");
-            
             if ( steps.length === 0 ) {
                 this.down('#grid_box').add({
                     xtype:'container',
@@ -151,56 +182,91 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         }}
                     ]
                 });
-
-                this.down('#action_box').add({
-                    xtype:'rallycombobox',
-                    itemId:'verdict_combo',
-                    displayField:'text',
-                    valueField:'dataIndex',
-                    store: me.step_verdict_store,
-                    fieldLabel: 'Verdict',
-                    labelWidth: 45
-                });
-                this.down('#action_box').add({
-                    xtype: 'rallybutton',
-                    itemId: 'pass_button',
-                    text: 'Set All Steps to Verdict',
-                    disabled: false,
-                    scope: this,
-                    handler: function() {
-                        this.setAllSteps(me.down('#verdict_combo').getValue());
-                    } 
-                });
-                
+                this.down('#set_step_button').setDisabled(false);
             }       
         }
-        this.down('#action_box').add({
-            xtype: 'rallybutton',
-            itemId: 'save_verdict_button',
-            text: 'Set Test Case to Verdict',
-            disabled: false,
-            scope: this,
-            handler: function() {
-                //this._disableAllButtons();
-                var value = me.down('#verdict_combo').getValue();
-                if ( value === "None" ) {
-                    alert("Choose a verdict other than 'None'");
-                } else {
-                    this.fireEvent('verdictChosen',this,this.test_case,value,this._getAllSteps());
-                }
-            } 
+
+    },
+    _makeOldTable: function() {
+        this.logger.log("  TestStepTable._makeOldTable ");
+        this.down('#grid_box').removeAll();
+        var me = this;
+        
+        if ( this.test_case ) {
+            this.down('#save_verdict_button').setDisabled(false);
+            var steps = this.test_case.get("_steps");
+            if ( steps.length === 0 ) {
+                this.down('#grid_box').add({
+                    xtype:'container',
+                    html:'No steps found for ' + this.test_case.get('FormattedID') + ' ' + this.test_case.get('Name')
+                });
+            } else {
+                this.logger.log("    Found steps: ", steps.length);
+                Ext.Array.each(steps,function(step){
+                    step.set('Verdict','None'),
+                    step.set('ActualResult','')                    
+                });
+                        
+                var addOneRenderer = function(value) {
+                    if (Ext.isNumber(value)) {
+                        return value + 1;
+                    }
+                    return value;
+                };
+                
+                this.step_store = Ext.create('Rally.data.custom.Store',{
+                    data: steps,
+                    autoLoad: true
+                });
+                
+                var text_box = "<input class='actual_" + this.test_case.get('FormattedID') + "' type='text' size=50/>";
+
+                var verdict_box = this._getVerdictBox(this.test_case.get('FormattedID'));
+                
+                var columns = [
+                    { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
+                    { dataIndex:'Input', text:'Input' },
+                    { dataIndex:'ExpectedResult',text:'Expected Result'},
+                    { dataIndex:'ActualResult',text:'Actual Result', editor: text_box},
+                    { dataIndex:'Verdict',text:'Step Verdict', editor: verdict_box }
+                ];
+                
+                var html = "<table>";
+                html += "<tr>";
+                Ext.Array.each(columns,function(column){
+                    html += "<th>" + column.text + "</th>";
+                });
+                html += "</tr>";
+                
+                Ext.Array.each(steps,function(step){
+                    html += "<tr>";
+                    Ext.Array.each(columns,function(column){
+                        var display_value = step.get(column.dataIndex);
+                        if ( typeof(column.renderer) === 'function' ) {
+                            display_value = column.renderer(display_value,step);
+                        }
+                        if ( typeof(column.editor) === 'string' ) {
+                            display_value = column.editor;
+                        }
+                        html += "<td>" + display_value + "</td>";
+                    });
+                    html += "</tr>";
+                });
+                html += "</table>";
+//              
+                this.down('#grid_box').update(html);
+                this.down('#set_step_button').setDisabled(false);
+            }       
+        }
+
+    },
+    _getVerdictBox: function(id) {
+        var html = "<SELECT class='verdict_" + id +  "'>";
+        this.step_verdict_store.each(function(verdict){
+            html += "<OPTION value='" + verdict.get('dataIndex') + "'>" + verdict.get('text') + "</OPTION>";
         });
-//        this.down('#action_box').add({
-//            xtype: 'rallybutton',
-//            itemId: 'save_fail_button',
-//            text: 'Fail This Test',
-//            disabled: false,
-//            scope: this,
-//            handler: function() {
-//                //this._disableAllButtons();
-//                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
-//            } 
-//        });
+        html += "</SELECT>";
+        return html;
     },
     _disableAllButtons: function() {
         var buttons = this.query('rallybutton');
@@ -210,13 +276,37 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         var buttons = this.query('rallybutton');
         Ext.Array.each(buttons, function(button) { button.setDisabled(false);});
     },
+    _setVerdictListeners: function(){
+        var me = this;
+        var select_class = "verdict_" + this.test_case.get('FormattedID');
+        var comboboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(comboboxes, function(combobox,idx){
+            Ext.get(combobox).addListener('change',function(evt,el,o){ 
+                me.step_store.getAt(idx).set('Verdict',el.value);
+                me.fireEvent('stepUpdated',me,me.step_store,me.step_store.getAt(idx),"Verdict");
+            });
+        });
+    },
+    _setActualListeners: function(){
+        var me = this;
+        var select_class = "actual_" + this.test_case.get('FormattedID');
+        var textboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(textboxes, function(textbox,idx){
+            Ext.get(textbox).addListener('blur',function(evt,el,o){ 
+                me.step_store.getAt(idx).set('ActualResult',el.value);
+                me.fireEvent('stepUpdated',me,me.step_store,me.step_store.getAt(idx),"ActualResult");
+            });
+        });
+    },
     setAllSteps: function(verdict){
-        var store = this.step_store;
-        var step_count = store.getCount();
-        for ( var i=0;i<step_count;i++ ) {
-            var step = store.getAt(i);
-            step.set('Verdict',verdict);
-        }
+        var me = this;
+        var select_class = "verdict_" + this.test_case.get('FormattedID');
+        var comboboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(comboboxes, function(combobox,idx){
+            Ext.getDom(combobox).value = verdict;
+            me.step_store.getAt(idx).set('Verdict',verdict);
+            me.fireEvent('stepUpdated',me,me.step_store,me.step_store.getAt(idx),"Verdict");
+        });
     },
     _getAllSteps: function() {
         var steps = [];
@@ -229,5 +319,23 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             }
         }
         return steps;
+    },
+    _clearActualResults: function() {
+        var me = this;
+        var select_class = "actual_" + this.test_case.get('FormattedID');
+        var textboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(textboxes, function(textbox,idx){
+            me.step_store.getAt(idx).set('ActualResult','');
+            textbox.value = '';
+        });
+    },
+    clearResults: function() {
+        this.setAllSteps('None');
+        this._clearActualResults();
+    },
+    render: function() {
+        this.callParent(arguments);
+        this._setVerdictListeners();
+        this._setActualListeners();
     }
 });

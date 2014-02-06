@@ -3,11 +3,11 @@
 <head>
     <title>Test Runner</title>
     <!--  (c) 2014 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Feb 03 2014 11:35:18 GMT-0800 (PST) -->
+    <!--  Build Date: Wed Feb 05 2014 17:13:33 GMT-0800 (PST) -->
     
     <script type="text/javascript">
-        var APP_BUILD_DATE = "Mon Feb 03 2014 11:35:18 GMT-0800 (PST)";
-        var CHECKSUM = 55553976848;
+        var APP_BUILD_DATE = "Wed Feb 05 2014 17:13:33 GMT-0800 (PST)";
+        var CHECKSUM = 53128724494;
     </script>
     
     <script type="text/javascript" src="/apps/2.0rc2/sdk.js"></script>
@@ -136,202 +136,6 @@ Ext.define('Rally.technicalservices.Logger',{
 
 });
 
-Ext.define('Rally.technicalservices.TestStepDialog',{
-    extend: 'Rally.ui.dialog.Dialog',
-    alias: 'widget.tssettingsdialog',
-    config: {
-        /**
-         * 
-         * The test case record (the kind from a wsapi datastore, reponds to a "get")
-         * {@TestCase} test_case  
-         */
-        test_case: null,
-        test_steps: [],
-        current_index: -1,
-        title: 'Test Step Runner',
-        width: 500
-    },
-    items: [{
-        xtype: 'panel',
-        border: false,
-        defaults: {
-            padding: 5,
-            margin: 5
-        },
-        items: [
-            {
-                xtype: 'container',
-                itemId: 'case_summary_box'
-            },
-            {
-                xtype:'container',
-                itemId: 'case_step_box'
-            }
-        ]
-    }],
-    constructor: function(config){
-        this.mergeConfig(config);
-        this.callParent([this.config]);
-        
-    },
-    initComponent: function() {
-        this.callParent(arguments);
-//        this.addEvents(
-//            /**
-//             * @event settingsChosen
-//             * Fires when user clicks done after making settings choices
-//             * @param {Rally.technicalservices.SettingsDialog} this
-//             * @param {hash} config settings
-//             */
-//            'settingsChosen',
-//            /**
-//             * @event cancelChosen
-//             * Fires when user clicks the cancel button
-//             */
-//            'cancelChosen'
-//        );
-        this._buildButtons();
-        this._setSummary();
-        //this._addChoosers();
-    },
-    _setSummary: function() {
-        var me = this;
-        
-        var summary_box = this.down('#case_summary_box');
-        this.test_case.getCollection('Steps').load({
-            fetch: ['Input', 'ExpectedResult'],
-            callback: function(steps, operation, success) {
-                me.test_steps = steps;
-                summary_box.add({
-                    xtype:'container',
-                    html: me.test_case.get('FormattedID') + ": " + me.test_case.get('Name')
-                });
-                summary_box.add({
-                    xtype:'container',
-                    itemId:'explanation_box',
-                    html: "There are " + steps.length + " steps in this test case.  Press 'OK' to begin executing the test steps."
-                });
-                me.down('#ok_button').setDisabled(false);
-            }
-        });
-    },
-    _displayStep: function() {
-        this.down('#explanation_box').removeAll();
-        this.down('#case_step_box').removeAll();
-
-        if ( this.current_index < this.test_steps.length ) {
-            var step = this.test_steps[this.current_index];
-            var display_index = this.current_index + 1;
-            
-            this.down('#case_step_box').add({
-                xtype:'container',
-                layout: { type: 'hbox' },
-                padding: 10,
-                margin: 10,
-                defaults: { padding: 10 },
-                items: [
-                    { 
-                        xtype:'container', 
-                        layout: { type: 'vbox' },
-                        items: [
-                            {xtype:'container',html:'Step'},
-                            {xtype:'container',html:display_index + "."}
-                        ]
-                    },
-                    { 
-                        xtype:'container', 
-                        layout: { type: 'vbox' },
-                        items: [
-                            {xtype:'container',html:'Input'},
-                            {xtype:'container',html:step.get('Input')}
-                        ]
-                    },
-                    { 
-                        xtype:'container', 
-                        layout: { type: 'vbox' },
-                        items: [
-                            {xtype:'container',html:'Expected Result'},
-                            {xtype:'container',html:step.get('ExpectedResult')}
-                        ]
-                    }
-                ]
-            });
-            
-            this.down('#ok_button').setDisabled(false);
-            this.down('#fail_button').setDisabled(false);
-            if ( this.current_index > 0 ) {
-                this.down('#back_button').setDisabled(false);
-            }
-        }
-        this.down('#cancel_button').setDisabled(false);
-    },
-    _disableAllButtons: function() {
-        var buttons = this.query('rallybutton');
-        Ext.Array.each(buttons, function(button) { button.setDisabled(true);});
-    },
-    _buildButtons: function() {
-        this.down('panel').addDocked({
-            xtype: 'toolbar',
-            dock: 'bottom',
-            padding: '0 0 10 0',
-            layout: {
-                type: 'hbox',
-                pack: 'center'
-            },
-            ui: 'footer',
-            items: [
-                {
-                    xtype: 'rallybutton',
-                    itemId: 'back_button',
-                    text: '< Back',
-                    disabled: true,
-                    scope: this,
-                    userAction: 'clicked back in dialog',
-                    handler: function() {
-                        //this._disableAllButtons();
-                        this.current_index -= 1;
-                        this._displayStep();
-                    }
-                },                {
-                    xtype: 'rallybutton',
-                    itemId: 'fail_button',
-                    text: 'FAIL',
-                    disabled: true,
-                    scope: this,
-                    userAction: 'clicked failed in dialog',
-                    handler: function() {
-                        //this._disableAllButtons();
-                        this.close();
-                    }
-                },
-                {
-                    xtype: 'rallybutton',
-                    itemId: 'ok_button',
-                    text: 'OK',
-                    disabled: true,
-                    scope: this,
-                    userAction: 'clicked OK in dialog',
-                    handler: function(btn) {
-                        //this._disableAllButtons();
-                        this.current_index += 1;
-                        this._displayStep();
-                    }
-                },
-                {
-                    xtype: 'rallybutton',
-                    text: 'Cancel',
-                    itemId:'cancel_button',
-                    userAction: 'clicked Cancel in dialog',
-                    handler: function() {
-                        //this._disableAllButtons();
-                        this.close()
-                    },
-                    scope: this
-                }
-            ]
-        });
-    }
-});
 /**
  * a component that displays and allows interaction with test steps for a test case
  */
@@ -353,7 +157,6 @@ Ext.define('Rally.technicalservices.TestStepTable',{
          * 
          * [ @String ] step_vericts  An array of valid verdicts for each step 
          */
-        step_verdicts: ['None','Pass','Fail'],
         step_verdict_store: null,
         tester: null
     },
@@ -390,20 +193,52 @@ Ext.define('Rally.technicalservices.TestStepTable',{
              */
             'stepUpdated'
         );
-        this._defineStepVerdictStore();
         this._setSummary(this.test_case);
-        this._makeGrid();
+        this._addButtons();
+        //this._makeGrid();
+        this._makeOldTable();
     },
     refreshDisplay: function(test_case) {
         this._setSummary(test_case);
     },
-    _defineStepVerdictStore: function() {
-        var data = [];
-        Ext.Array.each(this.step_verdicts,function(verdict){
-            data.push({dataIndex:verdict,text:verdict});
+    _addButtons: function() {
+        var me = this;
+        this.down('#action_box').add({
+            xtype:'rallycombobox',
+            itemId:'verdict_combo',
+            displayField:'text',
+            valueField:'dataIndex',
+            store: me.step_verdict_store,
+            value: 'None',
+            fieldLabel: 'Verdict',
+            labelWidth: 45
         });
-        this.step_verdict_store = Ext.create('Rally.data.custom.Store',{
-            data:data
+        this.down('#action_box').add({
+            xtype: 'rallybutton',
+            itemId: 'set_step_button',
+            disabled: true,
+            text: 'Set All Steps to Verdict',
+            disabled: true,
+            scope: this,
+            handler: function() {
+                this.setAllSteps(me.down('#verdict_combo').getValue());
+            } 
+        });
+        this.down('#action_box').add({
+            xtype: 'rallybutton',
+            itemId: 'save_verdict_button',
+            text: 'Set Test Case to Verdict',
+            disabled: true,
+            scope: this,
+            handler: function() {
+                //this._disableAllButtons();
+                var value = me.down('#verdict_combo').getValue();
+                if ( value === "None" ) {
+                    alert("Choose a verdict other than 'None'");
+                } else {
+                    this.fireEvent('verdictChosen',this,this.test_case,value,this._getAllSteps());
+                }
+            } 
         });
     },
     _setSummary: function(test_case) {
@@ -429,8 +264,8 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         var me = this;
         
         if ( this.test_case ) {
+            this.down('#save_verdict_button').setDisabled(false);
             var steps = this.test_case.get("_steps");
-            
             if ( steps.length === 0 ) {
                 this.down('#grid_box').add({
                     xtype:'container',
@@ -485,56 +320,91 @@ Ext.define('Rally.technicalservices.TestStepTable',{
                         }}
                     ]
                 });
-
-                this.down('#action_box').add({
-                    xtype:'rallycombobox',
-                    itemId:'verdict_combo',
-                    displayField:'text',
-                    valueField:'dataIndex',
-                    store: me.step_verdict_store,
-                    fieldLabel: 'Verdict',
-                    labelWidth: 45
-                });
-                this.down('#action_box').add({
-                    xtype: 'rallybutton',
-                    itemId: 'pass_button',
-                    text: 'Set All Steps to Verdict',
-                    disabled: false,
-                    scope: this,
-                    handler: function() {
-                        this.setAllSteps(me.down('#verdict_combo').getValue());
-                    } 
-                });
-                
+                this.down('#set_step_button').setDisabled(false);
             }       
         }
-        this.down('#action_box').add({
-            xtype: 'rallybutton',
-            itemId: 'save_verdict_button',
-            text: 'Set Test Case to Verdict',
-            disabled: false,
-            scope: this,
-            handler: function() {
-                //this._disableAllButtons();
-                var value = me.down('#verdict_combo').getValue();
-                if ( value === "None" ) {
-                    alert("Choose a verdict other than 'None'");
-                } else {
-                    this.fireEvent('verdictChosen',this,this.test_case,value,this._getAllSteps());
-                }
-            } 
+
+    },
+    _makeOldTable: function() {
+        this.logger.log("  TestStepTable._makeOldTable ");
+        this.down('#grid_box').removeAll();
+        var me = this;
+        
+        if ( this.test_case ) {
+            this.down('#save_verdict_button').setDisabled(false);
+            var steps = this.test_case.get("_steps");
+            if ( steps.length === 0 ) {
+                this.down('#grid_box').add({
+                    xtype:'container',
+                    html:'No steps found for ' + this.test_case.get('FormattedID') + ' ' + this.test_case.get('Name')
+                });
+            } else {
+                this.logger.log("    Found steps: ", steps.length);
+                Ext.Array.each(steps,function(step){
+                    step.set('Verdict','None'),
+                    step.set('ActualResult','')                    
+                });
+                        
+                var addOneRenderer = function(value) {
+                    if (Ext.isNumber(value)) {
+                        return value + 1;
+                    }
+                    return value;
+                };
+                
+                this.step_store = Ext.create('Rally.data.custom.Store',{
+                    data: steps,
+                    autoLoad: true
+                });
+                
+                var text_box = "<input class='actual_" + this.test_case.get('FormattedID') + "' type='text' size=50/>";
+
+                var verdict_box = this._getVerdictBox(this.test_case.get('FormattedID'));
+                
+                var columns = [
+                    { dataIndex:'StepIndex', text:'Step', renderer: addOneRenderer },
+                    { dataIndex:'Input', text:'Input' },
+                    { dataIndex:'ExpectedResult',text:'Expected Result'},
+                    { dataIndex:'ActualResult',text:'Actual Result', editor: text_box},
+                    { dataIndex:'Verdict',text:'Step Verdict', editor: verdict_box }
+                ];
+                
+                var html = "<table>";
+                html += "<tr>";
+                Ext.Array.each(columns,function(column){
+                    html += "<th>" + column.text + "</th>";
+                });
+                html += "</tr>";
+                
+                Ext.Array.each(steps,function(step){
+                    html += "<tr>";
+                    Ext.Array.each(columns,function(column){
+                        var display_value = step.get(column.dataIndex);
+                        if ( typeof(column.renderer) === 'function' ) {
+                            display_value = column.renderer(display_value,step);
+                        }
+                        if ( typeof(column.editor) === 'string' ) {
+                            display_value = column.editor;
+                        }
+                        html += "<td>" + display_value + "</td>";
+                    });
+                    html += "</tr>";
+                });
+                html += "</table>";
+//              
+                this.down('#grid_box').update(html);
+                this.down('#set_step_button').setDisabled(false);
+            }       
+        }
+
+    },
+    _getVerdictBox: function(id) {
+        var html = "<SELECT class='verdict_" + id +  "'>";
+        this.step_verdict_store.each(function(verdict){
+            html += "<OPTION value='" + verdict.get('dataIndex') + "'>" + verdict.get('text') + "</OPTION>";
         });
-//        this.down('#action_box').add({
-//            xtype: 'rallybutton',
-//            itemId: 'save_fail_button',
-//            text: 'Fail This Test',
-//            disabled: false,
-//            scope: this,
-//            handler: function() {
-//                //this._disableAllButtons();
-//                this.fireEvent('verdictChosen',this,this.test_case,'Fail',this._getAllSteps());
-//            } 
-//        });
+        html += "</SELECT>";
+        return html;
     },
     _disableAllButtons: function() {
         var buttons = this.query('rallybutton');
@@ -544,13 +414,37 @@ Ext.define('Rally.technicalservices.TestStepTable',{
         var buttons = this.query('rallybutton');
         Ext.Array.each(buttons, function(button) { button.setDisabled(false);});
     },
+    _setVerdictListeners: function(){
+        var me = this;
+        var select_class = "verdict_" + this.test_case.get('FormattedID');
+        var comboboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(comboboxes, function(combobox,idx){
+            Ext.get(combobox).addListener('change',function(evt,el,o){ 
+                me.step_store.getAt(idx).set('Verdict',el.value);
+                me.fireEvent('stepUpdated',me,me.step_store,me.step_store.getAt(idx),"Verdict");
+            });
+        });
+    },
+    _setActualListeners: function(){
+        var me = this;
+        var select_class = "actual_" + this.test_case.get('FormattedID');
+        var textboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(textboxes, function(textbox,idx){
+            Ext.get(textbox).addListener('blur',function(evt,el,o){ 
+                me.step_store.getAt(idx).set('ActualResult',el.value);
+                me.fireEvent('stepUpdated',me,me.step_store,me.step_store.getAt(idx),"ActualResult");
+            });
+        });
+    },
     setAllSteps: function(verdict){
-        var store = this.step_store;
-        var step_count = store.getCount();
-        for ( var i=0;i<step_count;i++ ) {
-            var step = store.getAt(i);
-            step.set('Verdict',verdict);
-        }
+        var me = this;
+        var select_class = "verdict_" + this.test_case.get('FormattedID');
+        var comboboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(comboboxes, function(combobox,idx){
+            Ext.getDom(combobox).value = verdict;
+            me.step_store.getAt(idx).set('Verdict',verdict);
+            me.fireEvent('stepUpdated',me,me.step_store,me.step_store.getAt(idx),"Verdict");
+        });
     },
     _getAllSteps: function() {
         var steps = [];
@@ -563,6 +457,24 @@ Ext.define('Rally.technicalservices.TestStepTable',{
             }
         }
         return steps;
+    },
+    _clearActualResults: function() {
+        var me = this;
+        var select_class = "actual_" + this.test_case.get('FormattedID');
+        var textboxes = Ext.query('.' + select_class,this.down('#grid_box').getEl().getHTML());
+        Ext.Array.each(textboxes, function(textbox,idx){
+            me.step_store.getAt(idx).set('ActualResult','');
+            textbox.value = '';
+        });
+    },
+    clearResults: function() {
+        this.setAllSteps('None');
+        this._clearActualResults();
+    },
+    render: function() {
+        this.callParent(arguments);
+        this._setVerdictListeners();
+        this._setActualListeners();
     }
 });
 Ext.define('Rally.technicalservices.TestCaseChooser',{
@@ -767,6 +679,7 @@ Ext.define('CustomApp', {
             success: function(verdicts) {
                 this.logger.log("Verdicts:",verdicts);
                 this.verdicts = verdicts;
+                this.verdict_store = this._defineStepVerdictStore(this.verdicts);
                 this._addSettingsButton();
                 this._addCheckboxes(verdicts);
             },
@@ -871,6 +784,7 @@ Ext.define('CustomApp', {
     },
     _getTestCasesForParent: function(parent,container) {
         this.logger.log("_getTestCasesForParent");
+        this._mask("Loading test cases...");
         var me = this;
         parent.getCollection('TestCases').load({
             fetch: ['Name','FormattedID','Steps','WorkProduct','LastVerdict'],
@@ -888,8 +802,19 @@ Ext.define('CustomApp', {
         });
         return result;
     },
+    _mask: function(text) {
+        var me = this;
+        me.setLoading(text);
+//        setTimeout(function(){
+//           me.setLoading(text);
+//        },10);
+    },
+    _unmask: function() {
+        this.setLoading(false);
+    },
     _getTestStepsForCases: function(container,cases) {
         this.logger.log("_getTestStepsForCases ",cases.length);
+        this._mask("Loading test steps...");
         var case_filters = [];
         var case_hash = {};
 
@@ -928,26 +853,37 @@ Ext.define('CustomApp', {
             }
         });        
     },
+    _defineStepVerdictStore: function(step_verdicts) {
+        var data = [];
+        Ext.Array.each(step_verdicts,function(verdict){
+            data.push({dataIndex:verdict,text:verdict});
+        });
+        
+        return Ext.create('Rally.data.custom.Store',{
+            data:data
+        });
+    },
     _displayTestCasesForContainer: function(container,cases) {
         this.logger.log("_displayTestCasesForContainer",cases.length);
+        this._mask("Creating display...");
+        
         var me = this;
-
         Ext.Array.each(cases, function(tc){
+            me.logger.log("starting ", tc.get('FormattedID'));
             me.all_cases[tc.get('ObjectID')] = tc;
             me.case_containers[tc.get('ObjectID')] = container.add({
                 xtype: 'tsteststeptable',
                 margin: 10,
                 test_case: tc,
                 tester: me.getContext().getUser(),
-                step_verdicts: me.verdicts,
+                step_verdict_store: me.verdict_store,
                 listeners: {
                     scope: me,
                     verdictChosen: function(table, test_case, verdict, steps) {
                         this._makeTestCaseResult(test_case,verdict,steps);
-                        table.setAllSteps("Not Run");
+                        table.clearResults();
                     },
-                    stepUpdated: function(table,store,step,operation,modified_field_names){
-                        this.logger.log("Step Changed",step,modified_field_names);
+                    stepUpdated: function(table,store,step,modified_field_names){
                         if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
                             var verdict = step.get('Verdict');
                             if ( verdict === "None" ) {
@@ -962,16 +898,18 @@ Ext.define('CustomApp', {
                 }
             });
             
-            var selected_verdicts = me.down('#verdict_checks').getValue().rb;
-            me.logger.log("show ", selected_verdicts );
-            
+            var selected_verdicts = me.down('#verdict_checks').getValue().rb;            
             var verdict = tc.get('LastVerdict') || "None";
         
             if ( Ext.Array.indexOf(selected_verdicts,verdict) == -1 ) {
                 me.logger.log("Hiding ", tc.get("Name"), " (",tc.get("LastVerdict"),")");
                 me.case_containers[tc.get('ObjectID')].hide();
             }
+            me.logger.log("done ", tc.get('FormattedID'));
+            me._unmask();
         });
+        me._unmask();
+        me.logger.log("--ready--");
     },
     _revealContainers: function(cbg) {
         var me = this;

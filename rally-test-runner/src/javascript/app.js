@@ -22,6 +22,7 @@ Ext.define('CustomApp', {
             success: function(verdicts) {
                 this.logger.log("Verdicts:",verdicts);
                 this.verdicts = verdicts;
+                this.verdict_store = this._defineStepVerdictStore(this.verdicts);
                 this._addSettingsButton();
                 this._addCheckboxes(verdicts);
             },
@@ -126,6 +127,7 @@ Ext.define('CustomApp', {
     },
     _getTestCasesForParent: function(parent,container) {
         this.logger.log("_getTestCasesForParent");
+        this._mask("Loading test cases...");
         var me = this;
         parent.getCollection('TestCases').load({
             fetch: ['Name','FormattedID','Steps','WorkProduct','LastVerdict'],
@@ -143,8 +145,19 @@ Ext.define('CustomApp', {
         });
         return result;
     },
+    _mask: function(text) {
+        var me = this;
+        me.setLoading(text);
+//        setTimeout(function(){
+//           me.setLoading(text);
+//        },10);
+    },
+    _unmask: function() {
+        this.setLoading(false);
+    },
     _getTestStepsForCases: function(container,cases) {
         this.logger.log("_getTestStepsForCases ",cases.length);
+        this._mask("Loading test steps...");
         var case_filters = [];
         var case_hash = {};
 
@@ -183,26 +196,37 @@ Ext.define('CustomApp', {
             }
         });        
     },
+    _defineStepVerdictStore: function(step_verdicts) {
+        var data = [];
+        Ext.Array.each(step_verdicts,function(verdict){
+            data.push({dataIndex:verdict,text:verdict});
+        });
+        
+        return Ext.create('Rally.data.custom.Store',{
+            data:data
+        });
+    },
     _displayTestCasesForContainer: function(container,cases) {
         this.logger.log("_displayTestCasesForContainer",cases.length);
+        this._mask("Creating display...");
+        
         var me = this;
-
         Ext.Array.each(cases, function(tc){
+            me.logger.log("starting ", tc.get('FormattedID'));
             me.all_cases[tc.get('ObjectID')] = tc;
             me.case_containers[tc.get('ObjectID')] = container.add({
                 xtype: 'tsteststeptable',
                 margin: 10,
                 test_case: tc,
                 tester: me.getContext().getUser(),
-                step_verdicts: me.verdicts,
+                step_verdict_store: me.verdict_store,
                 listeners: {
                     scope: me,
                     verdictChosen: function(table, test_case, verdict, steps) {
                         this._makeTestCaseResult(test_case,verdict,steps);
-                        table.setAllSteps("Not Run");
+                        table.clearResults();
                     },
-                    stepUpdated: function(table,store,step,operation,modified_field_names){
-                        this.logger.log("Step Changed",step,modified_field_names);
+                    stepUpdated: function(table,store,step,modified_field_names){
                         if ( Ext.Array.indexOf(modified_field_names, 'Verdict') > -1 ){
                             var verdict = step.get('Verdict');
                             if ( verdict === "None" ) {
@@ -217,16 +241,18 @@ Ext.define('CustomApp', {
                 }
             });
             
-            var selected_verdicts = me.down('#verdict_checks').getValue().rb;
-            me.logger.log("show ", selected_verdicts );
-            
+            var selected_verdicts = me.down('#verdict_checks').getValue().rb;            
             var verdict = tc.get('LastVerdict') || "None";
         
             if ( Ext.Array.indexOf(selected_verdicts,verdict) == -1 ) {
                 me.logger.log("Hiding ", tc.get("Name"), " (",tc.get("LastVerdict"),")");
                 me.case_containers[tc.get('ObjectID')].hide();
             }
+            me.logger.log("done ", tc.get('FormattedID'));
+            me._unmask();
         });
+        me._unmask();
+        me.logger.log("--ready--");
     },
     _revealContainers: function(cbg) {
         var me = this;

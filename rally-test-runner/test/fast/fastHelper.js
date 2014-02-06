@@ -1,45 +1,47 @@
-var useObjectID = function(value,record) {
-    if ( record.get('ObjectID') ) {
-        return record.get('ObjectID');
-    } 
-    return 0;
-};
+//
+Ext.define('mockWsapiDataStore',{
+    extend: 'Rally.data.custom.Store',
+    alias: 'widget.mockwsapidatastore',
+    getRecords: function() {
+        var records = [];
+        var data = this.getData();
+        data.each(function(record){
+            records.push(record);
+        });
+        return records;
+    }
+});
 
-var shiftDayBeginningToEnd = function(day) {
-    return Rally.util.DateTime.add(Rally.util.DateTime.add(Rally.util.DateTime.add(day,'hour',23), 'minute',59),'second',59);
-};
-
-Ext.define('mockStory',{
-    extend: 'Ext.data.Model',
-    fields: [
-        {name:'ObjectID', type: 'int'},
-        {name:'Name',type:'string'},
-        {name:'PlanEstimate',type:'int'},
-        {name:'id',type:'int',convert:useObjectID},
-        {name:'ScheduleState',type:'string',defaultValue:'Defined'}
+var simple_store = Ext.create('mockWsapiDataStore',{
+    data: [
+        { Name: 'first',  _ref: '/mock/12345', ObjectID: 12345 },
+        { Name: 'second', _ref: '/mock/12346', ObjectID: 12346 }
     ]
 });
 
-Ext.define('mockIteration',{
-    extend: 'Ext.data.Model',
-    fields: [
-        {name:'ObjectID', type: 'int'},
-        {name:'Name',type:'string'},
-        {name:'StartDate',type:'auto'},
-        {name:'EndDate',type:'auto'},
-        {name:'id',type:'int',convert:useObjectID}
+var alternate_name_store = Ext.create('mockWsapiDataStore',{
+    data: [
+        { DisplayName: 'first',  _ref: '/mock/12345', ObjectID:12345 },
+        { DisplayName: 'second', _ref: '/mock/12346', ObjectID:12346 }
     ]
 });
 
-Ext.define('mockCFD',{
-    extend: 'Ext.data.Model',
-    fields: [
-        {name:'CardCount',type:'int'},
-        {name:'CardEstimateTotal',type:'int'},
-        {name:'CardState',type:'string'},
-        {name:'CardToDoTotal',type:'int'},
-        {name:'CreationDate',type:'date'},
-        {name:'ObjectID',type:'int'},
-        {name:'TaskEstimateTotal',type:'int'}
+var simple_store_without_objectID = Ext.create('mockWsapiDataStore',{
+    data: [
+        { Name: 'first',  _ref: '/mock/12345' },
+        { Name: 'second', _ref: '/mock/12346' }
+    ]
+});
+
+var ugly_store = Ext.create('mockWsapiDataStore',{
+    data: [
+        { Name: '1234 1234 1234 1234 1234 1234 1234 1234 1234 1234 ', _ref: '/mock 1347', ObjectID:137 }
+    ]
+});
+
+var simple_custom_store = Ext.create('Rally.data.custom.Store',{
+    data: [
+        { Name: 'first',  _ref: '/mock/12345', ObjectID:12345 },
+        { Name: 'second', _ref: '/mock/12346', ObjectID:12346 }
     ]
 });
