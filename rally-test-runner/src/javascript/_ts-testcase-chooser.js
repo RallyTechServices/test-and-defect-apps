@@ -151,7 +151,13 @@ Ext.define('Rally.technicalservices.TestCaseChooser',{
         return deferred.promise;
     },
     _addGrid: function(records){
-        var store = Ext.create('Rally.data.custom.Store',{ data: records });
+        this.logger.log("Making a grid with this many records: ", records.length);
+        
+        var store = Ext.create('Rally.data.custom.Store',{ 
+            data: records,
+            limit: 200,
+            pageSize: 200
+        });
         this.down('#grid_box').removeAll();
         
         var mode = this.multiple ? 'MULTI' : 'SINGLE';
