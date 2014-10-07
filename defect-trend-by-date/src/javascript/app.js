@@ -84,17 +84,28 @@ Ext.define('CustomApp', {
         start_date = Rally.util.DateTime.fromIsoString(start_date);
         
         var show_states = this.getSetting('allowed_values') || allowed_values;
+        var ignore_creation_date = this.getSetting('ignore_creation_date') || false;
+        var environment = this.getSetting('environment') || false;
+        
+        var find = { 
+            _TypeHierarchy: 'Defect',
+            _ProjectHierarchy: this.getContext().getProject().ObjectID
+        };
+        if ( ! ignore_creation_date ) {
+            find["CreationDate"] = { "$gt": start_date }
+        }
+        
+        if (environment) {
+            find["Environment"] = environment;
+        }
         
         display_box.removeAll();
         display_box.add({
             xtype:'rallychart',
             storeType: 'Rally.data.lookback.SnapshotStore',
             storeConfig: {
-                find: {
-                    _TypeHierarchy: 'Defect',
-                    _ProjectHierarchy: this.getContext().getProject().ObjectID
-                },
-                fetch: ['PlanEstimate','State','Release'],
+                find:find,
+                fetch: ['PlanEstimate','State','Release','CreationDate'],
                 hydrate: ['State']
             },
             calculatorType: 'Rally.TechnicalServices.burndown.DefectTrendCalculator',
@@ -175,7 +186,24 @@ Ext.define('CustomApp', {
             labelWidth: 75,
             margin: 10,
             readyEvent: 'ready'
-            
+        },
+        {
+            name: 'ignore_creation_date',
+            xtype:'rallycheckboxfield',
+            fieldLabel: 'Ignore Creation Date:',
+            labelWidth: 75,
+            margin: 10,
+            readyEvent: 'ready'
+        },
+        {
+            name: 'environment',
+            xtype: 'rallyfieldvaluecombobox',
+            fieldLabel: 'Environment',
+            field: 'Environment',
+            model: 'Defect',
+            labelWidth: 75,
+            margin: 10,
+            readyEvent: 'ready'
         }];
     },
     //showSettings:  Override to add showing when external + scrolling
