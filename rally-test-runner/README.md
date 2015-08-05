@@ -1,5 +1,30 @@
 #Test Runner
 
+This app allows you to execute a series of tests and capture failures at the step level.
+
+You can choose a set of tests associated with test sets or stories in an iteration.  Once
+chosen, the test cases appear with their steps.
+
+![Image of starting testing](./docs/test-runner-a.png)
+
+For each test step, you can record an actual result and a verdict.  Then, for the test case, 
+you can choose to set a verdict for the test case overall.  
+
+The step results are saved as a note on the Test Case Result when the overall test case verdict
+is saved.  
+
+If the test case verdict is "Fail", then you are asked if you would like to create a defect.  Saying
+yes will take you to the page for creating a defect.  The defect will automatically be associated with
+the test case.
+
+NOTE: Because of changes to the Rally UI (introduction of the new edit details page), creating a defect 
+now takes the user away from the app so when she is done creating a defect, the test is no longer in
+progress.
+
+The test case step verdicts are pipe separated and stuffed into the notes of the result:
+
+![Image of result](./docs/test-runner-b.png)
+
 ## Development Notes
 
 ### First Load
